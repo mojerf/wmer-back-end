@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,8 +17,22 @@ class WorkFactory extends Factory
      */
     public function definition(): array
     {
+        $title = fake()->title();
+
         return [
-            //
+            'user_id' => User::factory(),
+            'image' => fake()->imageUrl(),
+            'title' => $title,
+            'slug' => str_replace(' ', '-', $title),
+            'timeline' => 'شهریور 1403 - مهر 1403',
+            'publish_date' => 'مهر 1403',
+            'role' => 'Front-End , Back-End Developer',
+            'tags' => "{'Angular', 'Laravel', 'TS'}",
+            'project_link' => fake()->randomElement([null, fake()->url()]),
+            'full_image' => fake()->randomElement([null, fake()->imageUrl()]),
+            'overview' => fake()->randomElement([null, fake()->paragraph(2)]),
+            'learn' => fake()->randomElement([null, fake()->paragraph(2)]),
+            'description' => fake()->paragraph(4),
         ];
     }
 }

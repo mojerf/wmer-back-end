@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('role');
             $table->json('tags');
             $table->string('project_link')->nullable();
-            $table->string('full_image');
+            $table->string('full_image')->nullable();
             $table->text('overview')->nullable();
             $table->text('learn')->nullable();
             $table->text('description');
