@@ -27,10 +27,12 @@ class CommentFactory extends Factory
             Work::class,
         ];
 
+        $users = User::pluck('id')->toArray();
+
         return [
             'commentable_type' => fake()->randomElement($models),
             'commentable_id' => fake()->numberBetween(1, 100),
-            'user_id' => User::factory(),
+            'user_id' => fake()->randomElement($users),
             // 'parent_id' => Comment::factory(),
             'body' => fake()->paragraph(),
         ];

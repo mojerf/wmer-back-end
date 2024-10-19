@@ -33,39 +33,40 @@ class DatabaseSeeder extends Seeder
         $works = Work::factory(20)->for($admin)->create();
         $users = User::factory(50)->create();
         Contact::factory(10)->create();
-        Order::factory(100)->make()->each(function ($order) use ($users, $products) {
-            $order->user_id = $users->random()->id;
-            $order->product_id = $products->random()->id;
-            $order->save();
-        });
+        Order::factory(100)->create();
 
         foreach ($posts as $post) {
-            $this->seedCommentsAndReplies($post, Post::class);
+            $this->seedCommentsAndReplies($post, Post::class, $users);
         }
         foreach ($works as $work) {
-            $this->seedCommentsAndReplies($work, Work::class);
+            $this->seedCommentsAndReplies($work, Work::class, $users);
         }
         foreach ($products as $product) {
-            $this->seedCommentsAndReplies($product, Product::class);
+            $this->seedCommentsAndReplies($product, Product::class, $users);
         }
     }
 
 
-    private function seedCommentsAndReplies($modelInstance, $modelType)
+    private function seedCommentsAndReplies($modelInstance, $modelType, $users)
     {
-        $comments = Comment::factory(5)->make([
+        $newCommentCounter = fake()->numberBetween(0, 5);
+        $comments = Comment::factory($newCommentCounter)->make([
             'commentable_type' => $modelType,
             'commentable_id' => $modelInstance->id,
-        ]);
+        ])->each(function ($comment) use ($users) {
+            $comment->user_id = $users->random()->id;
+            $comment->save();
+        });
 
         $modelInstance->comments()->saveMany($comments);
 
-        foreach ($comments->random(3) as $comment) {
-            Comment::factory(2)->make([
+        foreach ($comments->random(fake()->numberBetween(0, $newCommentCounter)) as $comment) {
+            Comment::factory(fake()->numberBetween(1, 3))->make([
                 'parent_id' => $comment->id,
                 'commentable_type' => $modelType,
                 'commentable_id' => $modelInstance->id,
-            ])->each(function ($reply) use ($comment) {
+            ])->each(function ($reply) use ($comment, $users) {
+                $comment->user_id = $users->random()->id;
                 $comment->replies()->save($reply);
             });
         }
