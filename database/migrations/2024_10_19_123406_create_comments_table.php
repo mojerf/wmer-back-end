@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->morphs('commentable');
             $table->foreignId('user_id')->constrained();
+            $table->unsignedBigInteger('parent_id')->nullable();
+            $table->foreign('parent_id')->references('id')->on('comments')->onDelete('cascade');
             $table->text('body');
             $table->timestamps();
         });
