@@ -17,7 +17,7 @@ class ProductFactory extends Factory
      */
     public function definition(): array
     {
-        $title = fake()->title();
+        $title = fake()->sentence();
         return [
             'user_id' => User::factory(),
             'image' => fake()->imageUrl(),

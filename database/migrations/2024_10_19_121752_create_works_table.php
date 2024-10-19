@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('timeline');
             $table->string('publish_date');
             $table->string('role');
-            $table->json('tags');
+            $table->string('tags');
             $table->string('project_link')->nullable();
             $table->string('full_image')->nullable();
             $table->text('overview')->nullable();

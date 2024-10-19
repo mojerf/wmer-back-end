@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Comment;
+use App\Models\Post;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Work;
@@ -21,7 +22,7 @@ class CommentFactory extends Factory
     public function definition(): array
     {
         $models = [
-            User::class,
+            Post::class,
             Product::class,
             Work::class,
         ];
@@ -30,7 +31,7 @@ class CommentFactory extends Factory
             'commentable_type' => fake()->randomElement($models),
             'commentable_id' => fake()->numberBetween(1, 100),
             'user_id' => User::factory(),
-            'parent_id' => Comment::factory(),
+            // 'parent_id' => Comment::factory(),
             'body' => fake()->paragraph(),
         ];
     }

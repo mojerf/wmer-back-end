@@ -15,6 +15,7 @@ return new class extends Migration
             $table->dropColumn('name');
             $table->string('first_name')->after('id')->nullable();
             $table->string('last_name')->after('first_name')->nullable();
+            $table->string('role')->after('last_name')->default('user');
             $table->string('phone_number')->unique()->after('email_verified_at')->nullable();
         });
     }
