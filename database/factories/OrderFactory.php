@@ -25,6 +25,7 @@ class OrderFactory extends Factory
             'user_id' => fake()->randomElement($users),
             'product_id' => fake()->randomElement($products),
             'state' => 'state',
+            'price' => fake()->numberBetween(10000, 1000000),
         ];
     }
 }

@@ -40,7 +40,7 @@ class ProductController extends Controller implements HasMiddleware
      */
     public function edit(Product $product)
     {
-        //
+        return $product;
     }
 
     /**

@@ -3,27 +3,23 @@
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ContactController;
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\MainPageController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\WorkController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-Route::resource('contacts', ContactController::class)->except(['create']);
-Route::resource('orders', OrderController::class)->except(['create']);
+Route::resource('contacts', ContactController::class)->only(['index', 'store', 'destroy']);
+Route::resource('orders', OrderController::class)->except(['create', 'edit', 'show']);
 Route::resource('posts', PostController::class)->except(['create']);
 Route::resource('products', ProductController::class)->except(['create']);
 Route::resource('works', WorkController::class)->except(['create']);
 
+
 Route::get('/main-page', [MainPageController::class, 'mainContent'])
     ->name('main page content');
+
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
     ->middleware('guest')

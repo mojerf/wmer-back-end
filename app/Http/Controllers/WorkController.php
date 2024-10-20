@@ -40,7 +40,7 @@ class WorkController extends Controller implements HasMiddleware
      */
     public function edit(Work $work)
     {
-        //
+        return $work;
     }
 
     /**

@@ -40,7 +40,7 @@ class PostController extends Controller implements HasMiddleware
      */
     public function edit(Post $post)
     {
-        //
+        return $post;
     }
 
     /**
