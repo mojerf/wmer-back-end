@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Resources\ContactResource;
 use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class ContactController extends Controller
+class ContactController extends Controller implements HasMiddleware
 {
     /**
      * Display a listing of the resource.
@@ -21,7 +24,20 @@ class ContactController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = Validator::make($request->all(), [
+            'phone_number' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
+            'email' => 'required|email',
+            'title' => 'required|string|max:255',
+            'text' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        Contact::create($request->all());
+
+        return response()->json(null, 201);
     }
 
     /**
@@ -29,6 +45,14 @@ class ContactController extends Controller
      */
     public function destroy(Contact $contact)
     {
-        //
+        $contact->delete();
+        return response()->json(null, 204);
+    }
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('IsAdmin', except: ['store']),
+        ];
     }
 }

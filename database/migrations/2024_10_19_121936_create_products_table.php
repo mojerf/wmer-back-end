@@ -17,8 +17,8 @@ return new class extends Migration
             $table->string('image');
             $table->string('title');
             $table->string('slug');
-            $table->integer('price');
-            $table->integer('price_with_discount')->nullable();
+            $table->unsignedInteger('price');
+            $table->unsignedInteger('price_with_discount')->nullable();
             $table->text('expert');
             $table->text('description');
             $table->string('download_link')->nullable();

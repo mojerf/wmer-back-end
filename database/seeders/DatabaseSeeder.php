@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
         $posts = Post::factory(20)->for($admin)->create();
         $works = Work::factory(20)->for($admin)->create();
         $users = User::factory(49)->create();
-        Contact::factory(10)->create();
+        Contact::factory(25)->create();
         Order::factory(100)->create();
 
         foreach ($posts as $post) {

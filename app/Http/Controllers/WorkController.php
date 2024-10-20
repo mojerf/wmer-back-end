@@ -56,7 +56,9 @@ class WorkController extends Controller implements HasMiddleware
      */
     public function destroy(Work $work)
     {
-        //
+
+        $work->delete();
+        return response()->json(null, 204);
     }
 
     public static function middleware(): array

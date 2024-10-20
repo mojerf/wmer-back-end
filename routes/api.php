@@ -11,7 +11,7 @@ use App\Http\Controllers\WorkController;
 use Illuminate\Support\Facades\Route;
 
 Route::resource('contacts', ContactController::class)->only(['index', 'store', 'destroy']);
-Route::resource('orders', OrderController::class)->except(['create', 'edit', 'show']);
+Route::resource('orders', OrderController::class)->only(['index', 'store', 'update']);
 Route::resource('posts', PostController::class)->except(['create']);
 Route::resource('products', ProductController::class)->except(['create']);
 Route::resource('works', WorkController::class)->except(['create']);

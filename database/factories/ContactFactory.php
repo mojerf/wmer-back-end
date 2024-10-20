@@ -19,6 +19,7 @@ class ContactFactory extends Factory
         return [
             'phone_number' => fake()->randomElement([null, fake()->phoneNumber()]),
             'email' => fake()->email(),
+            'title' => fake()->sentence(),
             'text' => fake()->paragraph(),
         ];
     }
