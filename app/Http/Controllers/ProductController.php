@@ -2,25 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\product\ProductAllResource;
+use App\Http\Resources\product\ProductSingleResource;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class ProductController extends Controller
+class ProductController extends Controller implements HasMiddleware
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return ProductAllResource::collection(Product::paginate(12));
     }
 
     /**
@@ -36,7 +32,7 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        //
+        return new ProductSingleResource($product);
     }
 
     /**
@@ -61,5 +57,11 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         //
+    }
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('IsAdmin', except: ['index', 'show']),
+        ];
     }
 }

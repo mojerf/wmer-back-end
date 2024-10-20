@@ -2,25 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\post\PostAllResource;
+use App\Http\Resources\post\PostSingleResource;
 use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class PostController extends Controller
+class PostController extends Controller implements HasMiddleware
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return PostAllResource::collection(Post::paginate(12));
     }
 
     /**
@@ -36,7 +32,7 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        //
+        return new PostSingleResource($post);
     }
 
     /**
@@ -61,5 +57,12 @@ class PostController extends Controller
     public function destroy(Post $post)
     {
         //
+    }
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('IsAdmin', except: ['index', 'show']),
+        ];
     }
 }

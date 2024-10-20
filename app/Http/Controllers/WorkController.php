@@ -2,25 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\work\WorkAllResource;
+use App\Http\Resources\work\WorkSingleResource;
 use App\Models\Work;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class WorkController extends Controller
+class WorkController extends Controller implements HasMiddleware
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return WorkAllResource::collection(Work::paginate(12));
     }
 
     /**
@@ -36,7 +32,7 @@ class WorkController extends Controller
      */
     public function show(Work $work)
     {
-        //
+        return new WorkSingleResource($work);
     }
 
     /**
@@ -61,5 +57,12 @@ class WorkController extends Controller
     public function destroy(Work $work)
     {
         //
+    }
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('IsAdmin', except: ['index', 'show']),
+        ];
     }
 }
