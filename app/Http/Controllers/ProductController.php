@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\IsAdmin;
 use App\Http\Resources\product\ProductAllResource;
 use App\Http\Resources\product\ProductSingleResource;
 use App\Models\Product;
@@ -62,7 +63,7 @@ class ProductController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('IsAdmin', except: ['index', 'show']),
+            new Middleware(IsAdmin::class, except: ['index', 'show']),
         ];
     }
 }

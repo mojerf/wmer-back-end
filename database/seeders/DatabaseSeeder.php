@@ -38,12 +38,17 @@ class DatabaseSeeder extends Seeder
 
         foreach ($orders as $order) {
             $orderProducts = $products->random(rand(1, 5));
+            $orderTotal = 0;
             foreach ($orderProducts as $orderProduct) {
+                $op_price = fake()->randomElement([$orderProduct->price, fake()->numberBetween(10, 1000) * 1000]);
                 $order->products()->attach(
                     $orderProduct->id,
-                    ['op_price' => fake()->randomElement([$orderProduct->price, fake()->numberBetween(10, 1000) * 1000])]
+                    ['op_price' => $op_price]
                 );
+                $orderTotal += $op_price;
             }
+            $order->total_price = $orderTotal;
+            $order->save();
         }
         foreach ($posts as $post) {
             $this->seedCommentsAndReplies($post, Post::class, $users);

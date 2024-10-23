@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\IsAdmin;
 use App\Http\Resources\post\PostAllResource;
 use App\Http\Resources\post\PostSingleResource;
 use App\Models\Post;
@@ -63,7 +64,7 @@ class PostController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('IsAdmin', except: ['index', 'show']),
+            new Middleware(IsAdmin::class, except: ['index', 'show']),
         ];
     }
 }

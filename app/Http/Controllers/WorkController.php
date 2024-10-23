@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\IsAdmin;
 use App\Http\Resources\work\WorkAllResource;
 use App\Http\Resources\work\WorkSingleResource;
 use App\Models\Work;
@@ -64,7 +65,7 @@ class WorkController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('IsAdmin', except: ['index', 'show']),
+            new Middleware(IsAdmin::class, except: ['index', 'show']),
         ];
     }
 }

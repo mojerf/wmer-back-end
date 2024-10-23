@@ -22,7 +22,8 @@ class OrderFactory extends Factory
 
         return [
             'user_id' => fake()->randomElement($users),
-            'state' => 'state',
+            'status' => fake()->randomElement(['pending', 'processing', 'completed', 'cancelled']),
+            'total_price' => fake()->numberBetween(10, 1000) * 1000,
         ];
     }
 }

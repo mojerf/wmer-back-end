@@ -20,6 +20,6 @@ class IsAdmin
             return $next($request);
         }
 
-        return redirect('/');
+        return response()->json(['error' => 'Unauthenticated.'], 401);
     }
 }

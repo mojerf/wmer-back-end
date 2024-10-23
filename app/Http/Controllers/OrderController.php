@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\IsAdmin;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\Product;
@@ -35,16 +36,31 @@ class OrderController extends Controller implements HasMiddleware
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        $user = Auth::user();
+        var_dump(Auth::guard('sanctum')->id());
+        exit;
+        $user_id = Auth::guard('sanctum')->id;
         $products = Product::findMany($request->product_ids);
-        $totalPrice = $products->sum('price');
-        // $order = $user->orders()->create([
-        //     'state' => 'pending',
-        //     'price' => $totalPrice,
-        // ]);
+        $total_price = 0;
 
-        // $order->products()->attach($request->product_ids);
-        // return response()->json($order, 201);
+        foreach ($products as $product) {
+            $price = $product->price_with_discount ?? $product->price;
+            $total_price += $price;
+        }
+
+        $order = Order::create([
+            'user_id' => $user_id,
+            'status' => 'pending',
+            'total_price' => $total_price,
+        ]);
+
+        foreach ($products as $product) {
+            $price = $product->price_with_discount ?? $product->price;
+            $order->products()->attach($product->id, [
+                'op_price' => $price,
+            ]);
+        }
+
+        return response()->json(new OrderResource($order), 201);
     }
 
     /**
@@ -58,8 +74,8 @@ class OrderController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            // 'auth',
-            // new Middleware('IsAdmin', except: ['store']),
+            'auth:sanctum',
+            new Middleware(IsAdmin::class, except: ['store']),
         ];
     }
 }

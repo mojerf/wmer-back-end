@@ -22,7 +22,8 @@ class OrderResource extends JsonResource
             'user_id' => $this->user_id,
             'buyer_name' => trim($َbuyer_name) ?: 'ناشناس',
             'products' => ProductOrderResource::collection($this->products),
-            'state' => $this->state,
+            'total_price' => $this->total_price,
+            'status' => $this->status,
             'date' => $this->created_at->diffForHumans(),
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\IsAdmin;
 use App\Http\Resources\ContactResource;
 use App\Models\Contact;
 use Illuminate\Http\Request;
@@ -52,7 +53,7 @@ class ContactController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('IsAdmin', except: ['store']),
+            new Middleware(IsAdmin::class, except: ['store']),
         ];
     }
 }
