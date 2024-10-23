@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\MainPageResource;
 use App\Http\Resources\post\PostAllResource;
 use App\Http\Resources\product\ProductAllResource;
 use App\Http\Resources\work\WorkAllResource;

@@ -38,13 +38,13 @@ class OrderController extends Controller implements HasMiddleware
         $user = Auth::user();
         $products = Product::findMany($request->product_ids);
         $totalPrice = $products->sum('price');
-        $order = $user->orders()->create([
-            'state' => 'pending',
-            'price' => $totalPrice,
-        ]);
+        // $order = $user->orders()->create([
+        //     'state' => 'pending',
+        //     'price' => $totalPrice,
+        // ]);
 
-        $order->products()->attach($request->product_ids);
-        return response()->json($order, 201);
+        // $order->products()->attach($request->product_ids);
+        // return response()->json($order, 201);
     }
 
     /**
@@ -58,8 +58,8 @@ class OrderController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            'auth',
-            new Middleware('IsAdmin', except: ['store']),
+            // 'auth',
+            // new Middleware('IsAdmin', except: ['store']),
         ];
     }
 }

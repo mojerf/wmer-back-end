@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\product\ProductAllResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,9 +21,7 @@ class OrderResource extends JsonResource
             'id' => $this->id,
             'user_id' => $this->user_id,
             'buyer_name' => trim($َbuyer_name) ?: 'ناشناس',
-            'product_name' => $this->product->title,
-            'product_slug' => $this->product->slug,
-            'price' => $this->price,
+            'products' => ProductOrderResource::collection($this->products),
             'state' => $this->state,
             'date' => $this->created_at->diffForHumans(),
         ];

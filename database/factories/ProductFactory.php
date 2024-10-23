@@ -18,7 +18,7 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         $title = fake()->sentence();
-        $price = fake()->numberBetween(10000, 1000000);
+        $price = fake()->numberBetween(10, 1000) * 1000;
         return [
             'user_id' => User::factory(),
             'image' => fake()->imageUrl(),
