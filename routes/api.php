@@ -16,10 +16,8 @@ Route::resource('posts', PostController::class)->except(['create']);
 Route::resource('products', ProductController::class)->except(['create']);
 Route::resource('works', WorkController::class)->except(['create']);
 
-
 Route::get('/main-page', [MainPageController::class, 'mainContent'])
     ->name('main page content');
-
 
 Route::post('/login', [AuthenticatedSessionController::class, 'store'])
     ->middleware('guest')
@@ -29,6 +27,6 @@ Route::post('/register', [RegisteredUserController::class, 'store'])
     ->middleware('guest')
     ->name('register');
 
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-    ->middleware('auth')
+Route::middleware('auth:sanctum')
+    ->post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
