@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,11 +24,14 @@ class AuthenticatedSessionController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return response()->json(['message' => __('Welcome!')]);
+            return response()->json([
+                'message' => __('messages.welcome'),
+                'user' => new UserResource(Auth::user())
+            ]);
         }
 
         throw ValidationException::withMessages([
-            'email' => __('The provided credentials do not match our records.'),
+            'email' => __('messages.loginError'),
         ]);
     }
 
@@ -37,6 +41,6 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): JsonResponse
     {
         Auth::guard('web')->logout();
-        return response()->json(["message" => "Logout successful"]);
+        return response()->json(["message" => __("messages.logout")]);
     }
 }

@@ -9,6 +9,6 @@ class AlreadyAuthenticatedException extends Exception
 {
     public function render(): JsonResponse
     {
-        return response()->json(['message' => __('Already Authenticated')], 403);
+        return response()->json(['message' => __('messages.authenticated')], 403);
     }
 }

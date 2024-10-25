@@ -20,6 +20,6 @@ class IsAdmin
             return $next($request);
         }
 
-        return response()->json(['error' => 'Unauthenticated.'], 401);
+        return response()->json(['error' => 'messages.unauthenticated'], 401);
     }
 }
