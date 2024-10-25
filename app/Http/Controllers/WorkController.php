@@ -46,8 +46,8 @@ class WorkController extends Controller implements HasMiddleware
         $user_id = Auth::guard('sanctum')->user()->id;
         $work = Work::create([
             'user_id' => $user_id,
-            'image' => $request->file('image')->store('works'),
-            'full_image' => $request->hasFile('full_image') ? $request->file('full_image')->store('works') : null,
+            'image' => $request->file('image')->store('works', 'public'),
+            'full_image' => $request->hasFile('full_image') ? $request->file('full_image')->store('works', 'public') : null,
             'title' => $request->title,
             'slug' => $request->slug,
             'timeline' => $request->timeline,
@@ -106,8 +106,8 @@ class WorkController extends Controller implements HasMiddleware
         $oldFullImagePath = $work->full_image;
 
         $work->update([
-            'image' => $request->hasFile('image') ? $request->file('image')->store('works') : $work->image,
-            'full_image' => $request->hasFile('full_image') ? $request->file('full_image')->store('works') : $work->full_image,
+            'image' => $request->hasFile('image') ? $request->file('image')->store('works', 'public') : $work->image,
+            'full_image' => $request->hasFile('full_image') ? $request->file('full_image')->store('works', 'public') : $work->full_image,
             'title' => $request->title,
             'slug' => $request->slug,
             'timeline' => $request->timeline,
@@ -121,10 +121,10 @@ class WorkController extends Controller implements HasMiddleware
         ]);
 
         if ($request->hasFile('image') && $oldImagePath) {
-            Storage::delete($oldImagePath);
+            Storage::disk('public')->delete($oldImagePath);
         }
         if ($request->hasFile('full_image') && $oldFullImagePath) {
-            Storage::delete($oldFullImagePath);
+            Storage::disk('public')->delete($oldFullImagePath);
         }
 
         return response()->json([
@@ -138,7 +138,9 @@ class WorkController extends Controller implements HasMiddleware
      */
     public function destroy(Work $work)
     {
+        $imagePath = $work->image;
         $work->delete();
+        Storage::disk('public')->delete($imagePath);
         return response()->json(['message' => __('messages.workDeleted')], 200);
     }
 

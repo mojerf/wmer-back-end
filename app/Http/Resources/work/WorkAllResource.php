@@ -18,7 +18,7 @@ class WorkAllResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'image' => $this->image,
+            'image' => asset('storage/' . $this->image),
             'tags' => explode(',', $this->tags),
         ];
     }

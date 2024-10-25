@@ -18,7 +18,7 @@ class PostAllResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'image' => $this->image,
+            'image' => asset('storage/' . $this->image),
             'created_at' => $this->created_at->diffForHumans(),
             'comments_count' => $this->comments->count(),
         ];

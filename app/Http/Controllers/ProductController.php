@@ -42,7 +42,7 @@ class ProductController extends Controller implements HasMiddleware
         $user_id = Auth::guard('sanctum')->user()->id;
         $product = Product::create([
             'user_id' => $user_id,
-            'image' => $request->file('image')->store('products'),
+            'image' => $request->file('image')->store('products', 'public'),
             'title' => $request->title,
             'slug' => $request->slug,
             'price' => $request->price,
@@ -93,7 +93,7 @@ class ProductController extends Controller implements HasMiddleware
         $oldImagePath = $product->image;
 
         $product->update([
-            'image' => $request->hasFile('image') ? $request->file('image')->store('products') : $product->image,
+            'image' => $request->hasFile('image') ? $request->file('image')->store('products', 'public') : $product->image,
             'title' => $request->title,
             'slug' => $request->slug,
             'price' => $request->price,
@@ -104,7 +104,7 @@ class ProductController extends Controller implements HasMiddleware
         ]);
 
         if ($request->hasFile('image') && $oldImagePath) {
-            Storage::delete($oldImagePath);
+            Storage::disk('public')->delete($oldImagePath);
         }
 
         return response()->json([
@@ -123,8 +123,9 @@ class ProductController extends Controller implements HasMiddleware
                 'message' => __('messages.cannotDeleteProductWithOrder'),
             ], 400);
         }
-
+        $imagePath = $product->image;
         $product->delete();
+        Storage::disk('public')->delete($imagePath);
         return response()->json(['message' => __('messages.productDeleted')], 200);
     }
     public static function middleware(): array

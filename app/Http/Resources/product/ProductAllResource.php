@@ -18,7 +18,7 @@ class ProductAllResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'image' => $this->image,
+            'image' => asset('storage/' . $this->image),
             'price' => $this->price_with_discount ?? $this->price,
             'has_discount' => $this->price_with_discount ? true : false,
             'created_at' => $this->created_at->diffForHumans(),

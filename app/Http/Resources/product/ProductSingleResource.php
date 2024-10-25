@@ -19,7 +19,7 @@ class ProductSingleResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'image' => $this->image,
+            'image' => asset('storage/' . $this->image),
             'author' => $this->user->first_name . ' ' . $this->user->last_name,
             'price' => $this->price,
             'price_with_discount' => $this->price_with_discount,

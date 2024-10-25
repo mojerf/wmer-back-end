@@ -38,7 +38,7 @@ class PostController extends Controller implements HasMiddleware
         $user_id = Auth::guard('sanctum')->user()->id;
         $post = Post::create([
             'user_id' => $user_id,
-            'image' => $request->file('image')->store('posts'),
+            'image' => $request->file('image')->store('posts', 'public'),
             'title' => $request->title,
             'slug' => $request->slug,
             'description' => $request->description,
@@ -81,14 +81,14 @@ class PostController extends Controller implements HasMiddleware
         $oldImagePath = $post->image;
 
         $post->update([
-            'image' => $request->hasFile('image') ? $request->file('image')->store('posts') : $post->image,
+            'image' => $request->hasFile('image') ? $request->file('image')->store('posts', 'public') : $post->image,
             'title' => $request->title,
             'slug' => $request->slug,
             'description' => $request->description,
         ]);
 
         if ($request->hasFile('image') && $oldImagePath) {
-            Storage::delete($oldImagePath);
+            Storage::disk('public')->delete($oldImagePath);
         }
 
         return response()->json([
@@ -102,7 +102,9 @@ class PostController extends Controller implements HasMiddleware
      */
     public function destroy(Post $post)
     {
+        $imagePath = $post->image;
         $post->delete();
+        Storage::disk('public')->delete($imagePath);
         return response()->json(['message' => __('messages.postDeleted')], 201);
     }
 
