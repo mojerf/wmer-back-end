@@ -2,9 +2,7 @@ name: Tests
 
 on:
   push:
-    branches:
-      - master
-      - '*.x'
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
