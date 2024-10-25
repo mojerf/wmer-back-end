@@ -18,13 +18,14 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         $title = fake()->sentence();
+        $price = fake()->numberBetween(10, 1000) * 1000;
         return [
             'user_id' => User::factory(),
             'image' => fake()->imageUrl(),
             'title' => $title,
             'slug' => str_replace(' ', '-', $title),
-            'price' => fake()->numberBetween(10000, 1000000),
-            'price_with_discount' => fake()->randomElement([null, fake()->numberBetween(5000, 500000)]),
+            'price' => $price,
+            'price_with_discount' => fake()->randomElement([null, fake()->numberBetween(5000, $price)]),
             'expert' => fake()->paragraph(2),
             'description' => fake()->paragraph(4),
             'download_link' => fake()->randomElement([null, fake()->url()]),

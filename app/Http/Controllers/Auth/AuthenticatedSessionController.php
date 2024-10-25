@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -14,23 +16,22 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(Request  $request): JsonResponse
     {
-        $request->validate([
-            "email" => ["required", "string", "email"],
-            "password" => ["required", "string"],
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
         ]);
-        if (!Auth::attempt($request->only("email", "password"))) {
-            return response()->json(
-                ["message" => "Invalid login credentials"],
-                401
-            );
+
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+
+            return response()->json([
+                'message' => __('messages.welcome'),
+                'user' => new UserResource(Auth::user())
+            ]);
         }
-        $user = Auth::user();
-        $token = $user->createToken('auth_token')->plainTextToken;
-        return response()->json([
-            "access_token" => $token,
-            "token_type" => "Bearer",
-            "user" => $user,
-            "status" => "Login successful",
+
+        throw ValidationException::withMessages([
+            'email' => __('messages.loginError'),
         ]);
     }
 
@@ -39,10 +40,7 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): JsonResponse
     {
-        $request
-            ->user()
-            ->currentAccessToken()
-            ->delete();
-        return response()->json(["message" => "Logout successful"]);
+        Auth::guard('web')->logout();
+        return response()->json(["message" => __("messages.logout")]);
     }
 }

@@ -9,6 +9,7 @@ use App\Models\Post;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Work;
+use Database\Factories\OrderProductFactory;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -31,10 +32,24 @@ class DatabaseSeeder extends Seeder
         $products = Product::factory(20)->for($admin)->create();
         $posts = Post::factory(20)->for($admin)->create();
         $works = Work::factory(20)->for($admin)->create();
-        $users = User::factory(50)->create();
-        Contact::factory(10)->create();
-        Order::factory(100)->create();
+        $users = User::factory(49)->create();
+        $orders = Order::factory(100)->create();
+        Contact::factory(25)->create();
 
+        foreach ($orders as $order) {
+            $orderProducts = $products->random(rand(1, 5));
+            $orderTotal = 0;
+            foreach ($orderProducts as $orderProduct) {
+                $op_price = fake()->randomElement([$orderProduct->price, fake()->numberBetween(10, 1000) * 1000]);
+                $order->products()->attach(
+                    $orderProduct->id,
+                    ['op_price' => $op_price]
+                );
+                $orderTotal += $op_price;
+            }
+            $order->total_price = $orderTotal;
+            $order->save();
+        }
         foreach ($posts as $post) {
             $this->seedCommentsAndReplies($post, Post::class, $users);
         }
@@ -45,7 +60,6 @@ class DatabaseSeeder extends Seeder
             $this->seedCommentsAndReplies($product, Product::class, $users);
         }
     }
-
 
     private function seedCommentsAndReplies($modelInstance, $modelType, $users)
     {

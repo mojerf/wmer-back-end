@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationException;
 
 class RegisteredUserController extends Controller
 {
@@ -20,25 +23,35 @@ class RegisteredUserController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'min:3', 'max:255'],
+            'last_name' => ['nullable', 'string', 'min:3', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'phone_number' => ['nullable', 'string', 'min:10', 'max:255', 'regex:/^09\d{9}$/', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
+            'phone_number' => $request->phone_number,
+            'role' => 'user',
             'password' => Hash::make($request->password),
         ]);
 
         event(new Registered($user));
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        if (Auth::loginUsingId($user->id)) {
+            $request->session()->regenerate();
 
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user
+            return response()->json([
+                'message' => __('messages.welcome'),
+                'user' => new UserResource(Auth::user())
+            ]);
+        }
+
+        throw ValidationException::withMessages([
+            'email' => __('messages.loginError'),
         ]);
     }
 }

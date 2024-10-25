@@ -2,25 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\IsAdmin;
+use App\Http\Resources\ContactResource;
 use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 
-class ContactController extends Controller
+class ContactController extends Controller implements HasMiddleware
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        return ContactResource::collection(Contact::orderByDesc('id')->paginate(10));
     }
 
     /**
@@ -28,31 +25,20 @@ class ContactController extends Controller
      */
     public function store(Request $request)
     {
-        //
-    }
+        $validator = Validator::make($request->all(), [
+            'phone_number' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
+            'email' => 'required|email',
+            'title' => 'required|string|max:255',
+            'text' => 'required|string',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Contact $contact)
-    {
-        //
-    }
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Contact $contact)
-    {
-        //
-    }
+        Contact::create($request->all());
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Contact $contact)
-    {
-        //
+        return response()->json(['message' => __('messages.newContact')], 201);
     }
 
     /**
@@ -60,6 +46,14 @@ class ContactController extends Controller
      */
     public function destroy(Contact $contact)
     {
-        //
+        $contact->delete();
+        return response()->json(['message' => __('messages.deletedContact')], 201);
+    }
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware(IsAdmin::class, except: ['store']),
+        ];
     }
 }
