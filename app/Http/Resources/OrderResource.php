@@ -25,6 +25,7 @@ class OrderResource extends JsonResource
             'total_price' => $this->total_price,
             'status' => $this->status,
             'date' => $this->created_at->diffForHumans(),
+            'message' => __('messages.newOrder')
         ];
     }
 }

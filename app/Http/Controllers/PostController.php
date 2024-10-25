@@ -9,6 +9,9 @@ use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class PostController extends Controller implements HasMiddleware
 {
@@ -17,7 +20,7 @@ class PostController extends Controller implements HasMiddleware
      */
     public function index()
     {
-        return PostAllResource::collection(Post::paginate(12));
+        return PostAllResource::collection(Post::orderByDesc('id')->paginate(12));
     }
 
     /**
@@ -25,7 +28,26 @@ class PostController extends Controller implements HasMiddleware
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'image' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'title' => ['required', 'string', 'min:3'],
+            'slug' => ['required', 'string', 'min:3', 'unique:posts'],
+            'description' => ['required', 'string'],
+        ]);
+
+        $user_id = Auth::guard('sanctum')->user()->id;
+        $post = Post::create([
+            'user_id' => $user_id,
+            'image' => $request->file('image')->store('posts'),
+            'title' => $request->title,
+            'slug' => $request->slug,
+            'description' => $request->description,
+        ]);
+
+        return response()->json([
+            'message' => __('messages.postCreated'),
+            'post_id' => $post->id
+        ], 201);
     }
 
     /**
@@ -49,7 +71,30 @@ class PostController extends Controller implements HasMiddleware
      */
     public function update(Request $request, Post $post)
     {
-        //
+        $request->validate([
+            'image' => ['sometimes', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+            'title' => ['required', 'string', 'min:3'],
+            'slug' => ['required', 'string', 'min:3', Rule::unique('posts')->ignore($post->id),],
+            'description' => ['required', 'string'],
+        ]);
+
+        $oldImagePath = $post->image;
+
+        $post->update([
+            'image' => $request->hasFile('image') ? $request->file('image')->store('posts') : $post->image,
+            'title' => $request->title,
+            'slug' => $request->slug,
+            'description' => $request->description,
+        ]);
+
+        if ($request->hasFile('image') && $oldImagePath) {
+            Storage::delete($oldImagePath);
+        }
+
+        return response()->json([
+            'message' => __('messages.postUpdated'),
+            'post' => $post
+        ], 200);
     }
 
     /**
@@ -58,7 +103,7 @@ class PostController extends Controller implements HasMiddleware
     public function destroy(Post $post)
     {
         $post->delete();
-        return response()->json(null, 204);
+        return response()->json(['message' => __('messages.postDeleted')], 201);
     }
 
     public static function middleware(): array

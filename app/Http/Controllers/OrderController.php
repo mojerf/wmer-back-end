@@ -27,18 +27,12 @@ class OrderController extends Controller implements HasMiddleware
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'product_ids' => 'required|array',
             'product_ids.*' => 'exists:products,id',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        var_dump(Auth::guard('sanctum')->id());
-        exit;
-        $user_id = Auth::guard('sanctum')->id;
+        $user_id = Auth::guard('sanctum')->user()->id;
         $products = Product::findMany($request->product_ids);
         $total_price = 0;
 

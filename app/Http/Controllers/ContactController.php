@@ -38,7 +38,7 @@ class ContactController extends Controller implements HasMiddleware
 
         Contact::create($request->all());
 
-        return response()->json(null, 201);
+        return response()->json(['message' => __('messages.newContact')], 201);
     }
 
     /**
@@ -47,7 +47,7 @@ class ContactController extends Controller implements HasMiddleware
     public function destroy(Contact $contact)
     {
         $contact->delete();
-        return response()->json(null, 204);
+        return response()->json(['message' => __('messages.deletedContact')], 201);
     }
 
     public static function middleware(): array
