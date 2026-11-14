@@ -7,11 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductAllResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return [
@@ -19,9 +15,11 @@ class ProductAllResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'image' => asset('storage/'.$this->image),
+            // `price` is what the customer pays; `old_price` is only present for discounted products.
             'price' => $this->price_with_discount ?? $this->price,
-            'has_discount' => $this->price_with_discount ? true : false,
-            'created_at' => $this->created_at->diffForHumans(),
+            'old_price' => $this->price_with_discount ? $this->price : null,
+            'has_discount' => $this->price_with_discount !== null,
+            'created_at' => $this->created_at->toIso8601String(),
             'comments_count' => $this->comments_count,
         ];
     }

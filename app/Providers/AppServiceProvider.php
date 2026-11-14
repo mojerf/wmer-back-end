@@ -3,9 +3,11 @@
 namespace App\Providers;
 
 use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -20,9 +22,20 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('manage-content', fn (User $user): bool => $user->isAdmin());
 
+        // The OpenAPI docs (/docs/api) are open locally and visible to administrators elsewhere.
+        Gate::define('viewApiDocs', fn (?User $user): bool => $this->app->isLocal() || (bool) $user?->isAdmin());
+
+        // Reset links open the Angular app, which then calls POST /reset-password.
+        ResetPassword::createUrlUsing(fn (object $notifiable, string $token): string => rtrim(config('app.frontend_url'), '/')
+            .'/reset-password?token='.$token.'&email='.urlencode($notifiable->getEmailForPasswordReset()));
+
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)
             ->by(Str::lower((string) $request->input('email')).'|'.$request->ip()));
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
         RateLimiter::for('contact', fn (Request $request) => Limit::perMinute(3)->by($request->ip()));
+        RateLimiter::for('password-reset', fn (Request $request) => Limit::perMinute(3)
+            ->by(Str::lower((string) $request->input('email')).'|'.$request->ip()));
+        RateLimiter::for('comments', fn (Request $request) => Limit::perMinute(10)
+            ->by((string) (Auth::id() ?? $request->ip())));
     }
 }

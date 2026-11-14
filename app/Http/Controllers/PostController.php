@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListContentRequest;
 use App\Http\Requests\PostRequest;
 use App\Http\Resources\post\PostAllResource;
 use App\Http\Resources\post\PostSingleResource;
@@ -11,14 +12,20 @@ use Illuminate\Http\JsonResponse;
 
 class PostController extends Controller
 {
-    public function index()
+    public function index(ListContentRequest $request)
     {
-        return PostAllResource::collection(Post::withCount('comments')->latest('id')->paginate(12));
+        return PostAllResource::collection(
+            Post::withCount('comments')
+                ->search($request->validated('search'))
+                ->latest('id')
+                ->paginate(12)
+                ->withQueryString()
+        );
     }
 
     public function show(Post $post): PostSingleResource
     {
-        return new PostSingleResource($post->load(['user', 'comments.user']));
+        return new PostSingleResource($post->load('user')->loadCount('comments'));
     }
 
     public function store(PostRequest $request): JsonResponse

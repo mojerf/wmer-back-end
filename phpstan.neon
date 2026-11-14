@@ -14,7 +14,3 @@ parameters:
         -
             identifier: property.notFound
             path: app/Http/Resources/*
-        # `role` is cast to the UserRole enum in User::casts(), which Larastan does not resolve here (covered by tests).
-        -
-            identifier: identical.alwaysFalse
-            path: app/Models/User.php

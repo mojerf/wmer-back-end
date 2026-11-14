@@ -14,10 +14,13 @@ class CommentResource extends JsonResource
 
         return [
             'id' => $this->id,
+            // Never expose the commenter's e-mail address publicly.
             'author_name' => $authorName ?: 'ناشناس',
             'parent_id' => $this->parent_id,
             'body' => $this->body,
-            'date' => $this->created_at->diffForHumans(),
+            'created_at' => $this->created_at->toIso8601String(),
+            'can_delete' => (bool) $request->user()?->can('delete', $this->resource),
+            'replies' => self::collection($this->whenLoaded('replies')),
         ];
     }
 }

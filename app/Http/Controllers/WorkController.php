@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListContentRequest;
 use App\Http\Requests\WorkRequest;
 use App\Http\Resources\work\WorkAllResource;
 use App\Http\Resources\work\WorkSingleResource;
@@ -11,14 +12,23 @@ use Illuminate\Http\JsonResponse;
 
 class WorkController extends Controller
 {
-    public function index()
+    public function index(ListContentRequest $request)
     {
-        return WorkAllResource::collection(Work::latest('id')->paginate(12));
+        $tag = $request->validated('tag');
+
+        return WorkAllResource::collection(
+            Work::query()
+                ->search($request->validated('search'), ['title', 'tags'])
+                ->when($tag, fn ($query) => $query->whereRaw("tags like ? escape '!'", [Work::containsPattern($tag)]))
+                ->latest('id')
+                ->paginate(12)
+                ->withQueryString()
+        );
     }
 
     public function show(Work $work): WorkSingleResource
     {
-        return new WorkSingleResource($work->load('comments.user'));
+        return new WorkSingleResource($work->loadCount('comments'));
     }
 
     public function store(WorkRequest $request): JsonResponse

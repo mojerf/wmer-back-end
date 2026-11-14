@@ -7,11 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class WorkAllResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return [
@@ -19,7 +15,8 @@ class WorkAllResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'image' => asset('storage/'.$this->image),
-            'tags' => explode(',', $this->tags),
+            'tags' => array_values(array_filter(array_map('trim', explode(',', (string) $this->tags)))),
+            'created_at' => $this->created_at->toIso8601String(),
         ];
     }
 }

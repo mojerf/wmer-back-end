@@ -2,17 +2,12 @@
 
 namespace App\Http\Resources\post;
 
-use App\Http\Resources\CommentResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class PostSingleResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return [
@@ -20,11 +15,11 @@ class PostSingleResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'image' => asset('storage/'.$this->image),
-            'author' => $this->user->first_name.' '.$this->user->last_name,
+            'author' => trim($this->user->first_name.' '.$this->user->last_name) ?: null,
             'description' => $this->description,
-            'created_at' => $this->created_at->diffForHumans(),
-            'comments_count' => $this->comments->count(),
-            'comments' => CommentResource::collection($this->comments),
+            'comments_count' => $this->comments_count,
+            'created_at' => $this->created_at->toIso8601String(),
+            'updated_at' => $this->updated_at->toIso8601String(),
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListContentRequest;
 use App\Http\Requests\ProductRequest;
 use App\Http\Resources\product\ProductAllResource;
 use App\Http\Resources\product\ProductSingleResource;
@@ -11,14 +12,31 @@ use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(ListContentRequest $request)
     {
-        return ProductAllResource::collection(Product::withCount('comments')->latest('id')->paginate(12));
+        $price = 'coalesce(price_with_discount, price)';
+
+        return ProductAllResource::collection(
+            Product::withCount('comments')
+                ->search($request->validated('search'), ['title', 'expert'])
+                ->when(
+                    $request->validated('sort'),
+                    fn ($query, string $sort) => match ($sort) {
+                        'oldest' => $query->oldest('id'),
+                        'price_asc' => $query->orderByRaw("$price asc"),
+                        'price_desc' => $query->orderByRaw("$price desc"),
+                        default => $query->latest('id'),
+                    },
+                    fn ($query) => $query->latest('id'),
+                )
+                ->paginate(12)
+                ->withQueryString()
+        );
     }
 
     public function show(Product $product): ProductSingleResource
     {
-        return new ProductSingleResource($product->load(['user', 'comments.user']));
+        return new ProductSingleResource($product->load('user')->loadCount('comments'));
     }
 
     public function store(ProductRequest $request): JsonResponse

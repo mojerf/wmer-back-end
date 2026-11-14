@@ -33,15 +33,26 @@ CI runs all of them on PHP 8.4 and 8.5 for every push and pull request.
 
 ## API (prefix `/api/v1`)
 
+Interactive OpenAPI docs: `/docs/api` (open in local development, administrators only elsewhere);
+the raw spec is at `/docs/api.json` and can be used to generate a typed TypeScript client.
+
 | Method | Path | Access |
 | --- | --- | --- |
 | GET | `/main-page` | public |
-| GET | `/works`, `/works/{id}`, `/posts`, `/posts/{id}`, `/products`, `/products/{id}` | public |
-| POST | `/contacts` | public, rate limited (3/min per IP) |
-| POST | `/register`, `/login` | guests, rate limited |
-| GET | `/me` · POST `/logout` · POST `/orders` | signed in |
-| POST/PUT/DELETE | `/works`, `/posts`, `/products` | administrators |
-| GET | `/orders`, `/contacts` · DELETE `/contacts/{id}` | administrators |
+| GET | `/works`, `/posts`, `/products` (`?search=`, works `?tag=`, products `?sort=latest\|oldest\|price_asc\|price_desc`, `?page=`) | public |
+| GET | `/works/{slug}`, `/posts/{slug}`, `/products/{slug}` | public |
+| GET | `/{works\|posts\|products}/{slug}/comments` | public |
+| POST | `/contacts` | public, 3/min per IP |
+| POST | `/register`, `/login`, `/forgot-password`, `/reset-password` | guests, rate limited |
+| GET/PATCH | `/me` · PUT `/me/password` · POST `/logout` | signed in |
+| POST | `/orders` · GET `/orders/mine`, `/orders/{id}` (owner or admin) | signed in |
+| POST | `/{works\|posts\|products}/{slug}/comments` (10/min) · DELETE `/comments/{id}` (author or admin) | signed in |
+| POST/PUT/DELETE | `/works`, `/posts`, `/products` (by id) | administrators |
+| GET | `/orders`, `/contacts`, `/admin/stats` · PATCH `/orders/{id}/status` · DELETE `/contacts/{id}` | administrators |
+
+Order lifecycle: `pending → processing → completed`, and `cancelled` from `pending`/`processing`; `completed`
+and `cancelled` are final. Download links appear only on completed orders. Payment gateway integration is not
+part of this API yet: administrators move orders forward manually.
 
 Authentication uses Sanctum's SPA flow: call `GET /api/csrf-cookie` first, then send the `X-XSRF-TOKEN`
 header with credentials on state-changing requests. Errors are always JSON (`401` not signed in,

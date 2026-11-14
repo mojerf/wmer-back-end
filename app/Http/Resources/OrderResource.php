@@ -28,7 +28,8 @@ class OrderResource extends JsonResource
             ])->all(),
             'total_price' => $this->total_price,
             'status' => $this->status->value,
-            'date' => $this->created_at->diffForHumans(),
+            'allowed_statuses' => array_map(fn ($s) => $s->value, $this->status->allowedTransitions()),
+            'created_at' => $this->created_at->toIso8601String(),
         ];
     }
 }

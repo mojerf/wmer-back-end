@@ -16,7 +16,7 @@ it('lets anyone read works, posts, products and the main page', function () {
     $this->getJson('/api/v1/works')->assertOk()->assertJsonCount(2, 'data');
     $this->getJson('/api/v1/posts')->assertOk()->assertJsonCount(2, 'data');
     $this->getJson('/api/v1/products')->assertOk()->assertJsonCount(2, 'data');
-    $this->getJson('/api/v1/works/'.Work::first()->id)->assertOk()->assertJsonPath('data.id', Work::first()->id);
+    $this->getJson('/api/v1/works/'.Work::first()->slug)->assertOk()->assertJsonPath('data.id', Work::first()->id);
     $this->getJson('/api/v1/main-page')->assertOk()->assertJsonStructure(['works', 'posts', 'products']);
 });
 
@@ -24,7 +24,7 @@ it('does not expose download links publicly', function () {
     $product = Product::factory()->create(['download_link' => 'https://files.example.test/secret.zip']);
 
     expect($this->getJson('/api/v1/products')->getContent())->not->toContain('secret.zip');
-    expect($this->getJson('/api/v1/products/'.$product->id)->getContent())->not->toContain('secret.zip');
+    expect($this->getJson('/api/v1/products/'.$product->slug)->getContent())->not->toContain('secret.zip');
 });
 
 it('blocks writes for guests (401) and regular users (403) and allows admins', function () {
