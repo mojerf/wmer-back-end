@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\OrderStatus;
 use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -29,6 +30,8 @@ class OrderResource extends JsonResource
             ])->all(),
             'total_price' => $this->total_price,
             'status' => $this->status->value,
+            // The customer can pay while the order waits for payment.
+            'can_pay' => $this->status === OrderStatus::Pending && $request->user()?->id === $this->user_id,
             'allowed_statuses' => array_map(fn ($s) => $s->value, $this->status->allowedTransitions()),
             'created_at' => $this->created_at->toIso8601String(),
         ];

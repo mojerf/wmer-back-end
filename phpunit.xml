@@ -21,6 +21,7 @@
         <env name="APP_ENV" value="testing"/>
         <env name="APP_KEY" value="base64:dGVzdGluZy1rZXktMzItYnl0ZXMtbG9uZy0xMjM0NTY="/>
         <env name="APP_LOCALE" value="en"/>
+        <env name="PAYMENT_GATEWAY" value="fake"/>
         <env name="SANCTUM_STATEFUL_DOMAINS" value="localhost"/>
         <env name="ADMIN_EMAIL" value="admin@example.test"/>
         <env name="ADMIN_PASSWORD" value=""/>

@@ -29,5 +29,8 @@ return [
     'passwordChanged' => 'رمز عبور تغییر کرد.',
     'passwordResetSent' => 'اگر این ایمیل در سیستم باشد، لینک بازنشانی رمز برایش ارسال می‌شود.',
     'passwordResetDone' => 'رمز عبور با موفقیت تغییر کرد.',
+    'paymentStarted' => 'به درگاه پرداخت منتقل می‌شوید.',
+    'paymentUnavailable' => 'درگاه پرداخت در دسترس نیست؛ کمی بعد دوباره تلاش کنید.',
+    'orderCompleted' => 'سفارش تکمیل شد.',
     'passwordResetInvalid' => 'لینک بازنشانی نامعتبر یا منقضی شده است.',
 ];

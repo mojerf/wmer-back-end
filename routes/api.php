@@ -8,6 +8,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\MainPageController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -40,6 +41,11 @@ Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name
 Route::get('/{type}/{slug}/comments', [CommentController::class, 'index'])
     ->where('type', $types)
     ->name('comments.index');
+
+// Where the gateway sends the customer's browser back to (confirmed with the gateway, see CompletePayment)
+Route::get('/payments/callback', [PaymentController::class, 'callback'])
+    ->middleware('throttle:60,1')
+    ->name('payments.callback');
 
 Route::post('/contacts', [ContactController::class, 'store'])
     ->middleware('throttle:contact')
@@ -74,6 +80,11 @@ Route::middleware('auth:sanctum')->group(function () use ($types) {
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/mine', [OrderController::class, 'mine'])->name('orders.mine');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->whereNumber('order')->name('orders.show');
+
+    Route::post('/orders/{order}/pay', [PaymentController::class, 'pay'])
+        ->whereNumber('order')
+        ->middleware('throttle:payments')
+        ->name('orders.pay');
 
     Route::post('/{type}/{slug}/comments', [CommentController::class, 'store'])
         ->where('type', $types)

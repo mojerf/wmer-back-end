@@ -45,14 +45,25 @@ the raw spec is at `/docs/api.json` and can be used to generate a typed TypeScri
 | POST | `/contacts` | public, 3/min per IP |
 | POST | `/register`, `/login`, `/forgot-password`, `/reset-password` | guests, rate limited |
 | GET/PATCH | `/me` · PUT `/me/password` · POST `/logout` | signed in |
-| POST | `/orders` · GET `/orders/mine`, `/orders/{id}` (owner or admin) | signed in |
+| POST | `/orders` · GET `/orders/mine`, `/orders/{id}` (owner or admin) · POST `/orders/{id}/pay` (owner, pending orders) | signed in |
+| GET | `/payments/callback` | the gateway's browser redirect (confirmed with the gateway) |
 | POST | `/{works\|posts\|products}/{slug}/comments` (10/min) · DELETE `/comments/{id}` (author or admin) | signed in |
 | POST/PUT/DELETE | `/works`, `/posts`, `/products` (by id) | administrators |
 | GET | `/orders`, `/contacts`, `/admin/stats` · PATCH `/orders/{id}/status` · DELETE `/contacts/{id}` | administrators |
 
 Order lifecycle: `pending → processing → completed`, and `cancelled` from `pending`/`processing`; `completed`
-and `cancelled` are final. Download links appear only on completed orders. Payment gateway integration is not
-part of this API yet: administrators move orders forward manually.
+and `cancelled` are final. Download links appear only on completed orders.
+
+### Payments
+
+`POST /orders/{id}/pay` creates a `Payment` (amount copied from the order) and returns the gateway URL. The gateway
+sends the browser to `GET /payments/callback`, which looks the payment up by its token, **verifies it with the
+gateway**, and only then marks the payment paid and the order completed (idempotent, race-safe). The browser is then
+redirected to the front end (`/orders/{id}?payment=success|failed`).
+
+- `PAYMENT_GATEWAY=fake` approves instantly. Local development and tests only: it is refused in production.
+- `PAYMENT_GATEWAY=zarinpal` uses Zarinpal v4. Set `ZARINPAL_MERCHANT_ID` and keep `ZARINPAL_SANDBOX=true` until you
+  are ready for real money. Add another gateway by implementing `App\Payments\PaymentGateway`.
 
 Authentication uses Sanctum's SPA flow: call `GET /api/csrf-cookie` first, then send the `X-XSRF-TOKEN`
 header with credentials on state-changing requests. Errors are always JSON (`401` not signed in,
