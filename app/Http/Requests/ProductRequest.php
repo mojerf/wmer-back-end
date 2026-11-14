@@ -19,7 +19,7 @@ class ProductRequest extends FormRequest
         $product = $this->route('product');
 
         return [
-            'image' => [$product ? 'sometimes' : 'required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'image' => [$product ? 'sometimes' : 'required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048', 'dimensions:max_width=6000,max_height=6000'],
             'title' => ['required', 'string', 'min:3', 'max:255'],
             'slug' => ['required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\pN_-]+$/u', Rule::unique('products')->ignore($product)],
             'price' => ['required', 'integer', 'min:0', 'max:1000000000'],

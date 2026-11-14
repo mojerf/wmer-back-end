@@ -2,6 +2,7 @@
 
 namespace Database\Seeders\Support;
 
+use App\Support\ImageStorage;
 use Illuminate\Support\Facades\Storage;
 
 /** Generates simple gradient cover images with GD so demo data has pictures without any download. */
@@ -52,5 +53,22 @@ final class PlaceholderImage
         Storage::disk('public')->put($path, $png);
 
         return $path;
+    }
+
+    /**
+     * Image plus its list thumbnail, ready to be spread into a model's attributes.
+     *
+     * @param  array{0: string, 1: string}  $colors
+     * @return array{image: string, image_thumb: string|null}
+     */
+    public static function pair(string $path, array $colors): array
+    {
+        $image = self::create($path, $colors);
+        $bytes = $image === '' ? '' : (string) Storage::disk('public')->get($image);
+
+        return [
+            'image' => $image,
+            'image_thumb' => $bytes === '' ? null : ImageStorage::makeThumbFromBytes($bytes, $image),
+        ];
     }
 }

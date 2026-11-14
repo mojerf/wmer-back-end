@@ -2,7 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Comment;
+use App\Models\Post;
+use App\Models\Product;
 use App\Models\User;
+use App\Models\Work;
+use App\Support\ContentCache;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
     {
         // Catch N+1 queries and silent attribute mistakes while developing and testing.
         Model::preventLazyLoading(! $this->app->isProduction());
+
+        // Anything that appears in the cached public lists invalidates them when it changes.
+        foreach ([Work::class, Post::class, Product::class, Comment::class] as $model) {
+            $model::saved(fn () => ContentCache::bump());
+            $model::deleted(fn () => ContentCache::bump());
+        }
 
         Gate::define('manage-content', fn (User $user): bool => $user->isAdmin());
 

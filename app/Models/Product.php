@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
+/**
+ * @property string|null $image_thumb Small WebP cover for list pages (null for older content)
+ */
 class Product extends Model
 {
     use HasFactory, Searchable;
@@ -16,6 +19,7 @@ class Product extends Model
     protected $fillable = [
         'user_id',
         'image',
+        'image_thumb',
         'title',
         'slug',
         'price',

@@ -16,6 +16,8 @@ class ProductAllResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'image' => ImageStorage::url($this->image),
+            // Small WebP for cards and lists (falls back to the full image for older content).
+            'image_thumb' => ImageStorage::thumbUrl($this->image_thumb, $this->image),
             // `price` is what the customer pays; `old_price` is only present for discounted products.
             'price' => $this->price_with_discount ?? $this->price,
             'old_price' => $this->price_with_discount ? $this->price : null,

@@ -7,31 +7,39 @@ use App\Http\Requests\ProductRequest;
 use App\Http\Resources\product\ProductAllResource;
 use App\Http\Resources\product\ProductSingleResource;
 use App\Models\Product;
+use App\Support\ContentCache;
 use App\Support\ImageStorage;
 use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
-    public function index(ListContentRequest $request)
-    {
-        $price = 'coalesce(price_with_discount, price)';
+    /** Columns the list resource needs (descriptions are not loaded for lists). */
+    public const LIST_COLUMNS = ['id', 'title', 'slug', 'image', 'image_thumb', 'price', 'price_with_discount', 'created_at'];
 
-        return ProductAllResource::collection(
-            Product::withCount('comments')
+    public function index(ListContentRequest $request): JsonResponse
+    {
+        return response()->json(ContentCache::remember('products', $request, function () use ($request): array {
+            $price = 'coalesce(price_with_discount, price)';
+
+            $products = Product::query()
+                ->select(self::LIST_COLUMNS)
+                ->withCount('comments')
                 ->search($request->validated('search'), ['title', 'expert'])
                 ->when(
                     $request->validated('sort'),
                     fn ($query, string $sort) => match ($sort) {
                         'oldest' => $query->oldest('id'),
-                        'price_asc' => $query->orderByRaw("$price asc"),
-                        'price_desc' => $query->orderByRaw("$price desc"),
+                        'price_asc' => $query->orderByRaw("$price asc, id desc"),
+                        'price_desc' => $query->orderByRaw("$price desc, id desc"),
                         default => $query->latest('id'),
                     },
                     fn ($query) => $query->latest('id'),
                 )
                 ->paginate(12)
-                ->withQueryString()
-        );
+                ->withQueryString();
+
+            return ProductAllResource::collection($products)->response($request)->getData(true);
+        }));
     }
 
     public function show(Product $product): ProductSingleResource
@@ -41,9 +49,12 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request): JsonResponse
     {
+        [$image, $thumb] = ImageStorage::storeWithThumb($request->file('image'), 'products');
+
         $product = $request->user()->products()->create([
             ...$request->safe()->except('image'),
-            'image' => ImageStorage::store($request->file('image'), 'products'),
+            'image' => $image,
+            'image_thumb' => $thumb,
         ]);
 
         return response()->json([
@@ -55,13 +66,20 @@ class ProductController extends Controller
     public function update(ProductRequest $request, Product $product): JsonResponse
     {
         $oldImage = $product->image;
+        $oldThumb = $product->image_thumb;
 
-        $product->update([
-            ...$request->safe()->except('image'),
-            'image' => $request->hasFile('image') ? ImageStorage::store($request->file('image'), 'products') : $oldImage,
-        ]);
+        $attributes = $request->safe()->except('image');
 
-        ImageStorage::delete($request->hasFile('image') ? $oldImage : null);
+        if ($request->hasFile('image')) {
+            [$attributes['image'], $attributes['image_thumb']] = ImageStorage::storeWithThumb($request->file('image'), 'products');
+        }
+
+        $product->update($attributes);
+
+        ImageStorage::delete(
+            $request->hasFile('image') ? $oldImage : null,
+            $request->hasFile('image') ? $oldThumb : null,
+        );
 
         return response()->json(['message' => __('messages.productUpdated'), 'product_id' => $product->id]);
     }
@@ -73,7 +91,7 @@ class ProductController extends Controller
         }
 
         $product->delete();
-        ImageStorage::delete($product->image);
+        ImageStorage::delete($product->image, $product->image_thumb);
 
         return response()->json(['message' => __('messages.productDeleted')]);
     }

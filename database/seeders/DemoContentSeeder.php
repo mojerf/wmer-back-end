@@ -100,7 +100,7 @@ class DemoContentSeeder extends Seeder
 
             $work = Work::create([
                 'user_id' => $admin->id,
-                'image' => PlaceholderImage::create("demo/works/{$slug}.png", self::COVERS[$i % count(self::COVERS)]),
+                ...PlaceholderImage::pair("demo/works/{$slug}.png", self::COVERS[$i % count(self::COVERS)]),
                 'full_image' => PlaceholderImage::create("demo/works/{$slug}-full.png", self::COVERS[($i + 3) % count(self::COVERS)], 1600, 900),
                 'title' => $title,
                 'slug' => $slug,
@@ -137,7 +137,7 @@ class DemoContentSeeder extends Seeder
 
             $post = Post::create([
                 'user_id' => $admin->id,
-                'image' => PlaceholderImage::create("demo/posts/{$slug}.png", self::COVERS[($i + 1) % count(self::COVERS)]),
+                ...PlaceholderImage::pair("demo/posts/{$slug}.png", self::COVERS[($i + 1) % count(self::COVERS)]),
                 'title' => $title,
                 'slug' => $slug,
                 'description' => $lead."\n\nدر این مدت چند پروژه را با این رویکرد پیش بردم و نتیجه‌ها قابل‌اتکا بود. مهم‌ترین درس این است که تصمیم‌های کوچک و مداوم برای تمیز نگه داشتن کد، در بلندمدت بیشترین بازده را دارند.\n\nاگر سؤالی دارید، در بخش نظرها بنویسید.",
@@ -164,7 +164,7 @@ class DemoContentSeeder extends Seeder
 
             $product = Product::create([
                 'user_id' => $admin->id,
-                'image' => PlaceholderImage::create("demo/products/{$slug}.png", self::COVERS[($i + 2) % count(self::COVERS)]),
+                ...PlaceholderImage::pair("demo/products/{$slug}.png", self::COVERS[($i + 2) % count(self::COVERS)]),
                 'title' => $title,
                 'slug' => $slug,
                 'price' => $price,
@@ -296,7 +296,7 @@ class DemoContentSeeder extends Seeder
         for ($n = 1; $n <= 18; $n++) {
             $work = Work::create([
                 'user_id' => $admin->id,
-                'image' => PlaceholderImage::create("demo/works/extra-{$n}.png", self::COVERS[$n % count(self::COVERS)]),
+                ...PlaceholderImage::pair("demo/works/extra-{$n}.png", self::COVERS[$n % count(self::COVERS)]),
                 'title' => $title(4),
                 'slug' => "demo-work-{$n}",
                 'timeline' => 'فروردین ۱۴۰۳ تا شهریور ۱۴۰۳',
@@ -312,7 +312,7 @@ class DemoContentSeeder extends Seeder
         for ($n = 1; $n <= 24; $n++) {
             $post = Post::create([
                 'user_id' => $admin->id,
-                'image' => PlaceholderImage::create("demo/posts/extra-{$n}.png", self::COVERS[$n % count(self::COVERS)]),
+                ...PlaceholderImage::pair("demo/posts/extra-{$n}.png", self::COVERS[$n % count(self::COVERS)]),
                 'title' => $title(6),
                 'slug' => "demo-post-{$n}",
                 'description' => $faker->paragraph(5).'
@@ -326,7 +326,7 @@ class DemoContentSeeder extends Seeder
             $price = random_int(10, 150) * 10_000;
             $product = Product::create([
                 'user_id' => $admin->id,
-                'image' => PlaceholderImage::create("demo/products/extra-{$n}.png", self::COVERS[$n % count(self::COVERS)]),
+                ...PlaceholderImage::pair("demo/products/extra-{$n}.png", self::COVERS[$n % count(self::COVERS)]),
                 'title' => $title(3),
                 'slug' => "demo-product-{$n}",
                 'price' => $price,

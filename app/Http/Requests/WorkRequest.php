@@ -19,8 +19,8 @@ class WorkRequest extends FormRequest
         $work = $this->route('work');
 
         return [
-            'image' => [$work ? 'sometimes' : 'required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
-            'full_image' => ['sometimes', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'image' => [$work ? 'sometimes' : 'required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048', 'dimensions:max_width=6000,max_height=6000'],
+            'full_image' => ['sometimes', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048', 'dimensions:max_width=6000,max_height=6000'],
             'title' => ['required', 'string', 'min:3', 'max:255'],
             'slug' => ['required', 'string', 'min:3', 'max:255', 'regex:/^[\pL\pN_-]+$/u', Rule::unique('works')->ignore($work)],
             'timeline' => ['required', 'string', 'max:255'],
