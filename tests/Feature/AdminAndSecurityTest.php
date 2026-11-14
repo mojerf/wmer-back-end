@@ -4,6 +4,7 @@ use App\Enums\OrderStatus;
 use App\Models\Contact;
 use App\Models\Order;
 use App\Models\Post;
+use App\Models\Product;
 
 it('reports counts and revenue from completed orders only', function () {
     Post::factory()->count(2)->create();
@@ -47,4 +48,24 @@ it('documents the API for administrators only (outside local development)', func
 
     expect($spec)->toHaveKey('openapi')
         ->and(array_keys($spec['paths']))->toContain('/main-page', '/works', '/orders/{order}/status');
+});
+
+it('gives admins the raw editable fields of an item, download link included', function () {
+    $product = Product::factory()->create(['download_link' => 'https://files.example.test/a.zip']);
+
+    $this->actingAs(admin())->getJson("/api/v1/admin/products/{$product->id}")
+        ->assertOk()
+        ->assertJsonPath('data.download_link', 'https://files.example.test/a.zip')
+        ->assertJsonPath('data.slug', $product->slug)
+        ->assertJsonMissingPath('data.user_id');
+
+    $this->actingAs(admin())->getJson('/api/v1/admin/products/999999')->assertNotFound();
+    $this->actingAs(admin())->getJson('/api/v1/admin/users/1')->assertNotFound();
+});
+
+it('keeps the raw item endpoint admin only', function () {
+    $product = Product::factory()->create();
+
+    $this->getJson("/api/v1/admin/products/{$product->id}")->assertUnauthorized();
+    $this->actingAs(customer())->getJson("/api/v1/admin/products/{$product->id}")->assertForbidden();
 });

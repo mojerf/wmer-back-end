@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminContentController;
 use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\EmailVerificationController;
@@ -107,7 +108,7 @@ Route::middleware('auth:sanctum')->group(function () use ($types) {
     });
 
     // Administrators only
-    Route::middleware('can:manage-content')->group(function () {
+    Route::middleware('can:manage-content')->group(function () use ($types) {
         Route::apiResource('works', WorkController::class)->only(['store', 'update', 'destroy']);
         Route::apiResource('posts', PostController::class)->only(['store', 'update', 'destroy']);
         Route::apiResource('products', ProductController::class)->only(['store', 'update', 'destroy']);
@@ -119,5 +120,9 @@ Route::middleware('auth:sanctum')->group(function () use ($types) {
         Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
 
         Route::get('/admin/stats', AdminStatsController::class)->name('admin.stats');
+        Route::get('/admin/{type}/{id}', [AdminContentController::class, 'show'])
+            ->where('type', $types)
+            ->whereNumber('id')
+            ->name('admin.content.show');
     });
 });
