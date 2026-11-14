@@ -40,6 +40,11 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
+      - name: Prepare the environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+
       - name: Check code style (Pint)
         run: vendor/bin/pint --test
 
@@ -51,3 +56,9 @@ jobs:
 
       - name: Run tests
         run: vendor/bin/pest
+
+      - name: Migrate and seed a throw-away database (smoke test)
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+        run: php artisan migrate:fresh --seed --force
