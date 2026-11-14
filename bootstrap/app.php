@@ -8,6 +8,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -37,7 +38,14 @@ return Application::configure(basePath: dirname(__DIR__))
             return response()->json(['message' => __('messages.unauthenticated')], 401);
         });
 
-        // Gate/policy denials (e.g. the "manage-content" gate) arrive here as 403.
+        // The `verified` middleware aborts with an English 403; give the front end a stable code and a Persian text.
+        $exceptions->render(function (HttpException $e, Request $request) {
+            if ($e->getStatusCode() === 403 && $e->getMessage() === 'Your email address is not verified.') {
+                return response()->json(['message' => __('messages.emailNotVerified'), 'code' => 'email_unverified'], 403);
+            }
+        });
+
+        // Gate/policy denials (e.g. the "manage-content" gate) and the `verified` middleware arrive here as 403.
         $exceptions->render(function (AccessDeniedHttpException $e, Request $request) {
             return response()->json(['message' => __('messages.unauthorized')], 403);
         });

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminStatsController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CommentController;
@@ -70,27 +71,40 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
+// The signed link in the confirmation e-mail is the proof: it works without being signed in
+Route::post('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->whereNumber('id')
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
 // Signed-in users
 Route::middleware('auth:sanctum')->group(function () use ($types) {
     Route::get('/me', fn (Request $request) => new UserResource($request->user()))->name('me');
     Route::patch('/me', [ProfileController::class, 'update'])->name('me.update');
     Route::put('/me/password', [ProfileController::class, 'changePassword'])->name('me.password');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:verification')
+        ->name('verification.send');
 
-    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
     Route::get('/orders/mine', [OrderController::class, 'mine'])->name('orders.mine');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->whereNumber('order')->name('orders.show');
-
-    Route::post('/orders/{order}/pay', [PaymentController::class, 'pay'])
-        ->whereNumber('order')
-        ->middleware('throttle:payments')
-        ->name('orders.pay');
-
-    Route::post('/{type}/{slug}/comments', [CommentController::class, 'store'])
-        ->where('type', $types)
-        ->middleware('throttle:comments')
-        ->name('comments.store');
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+
+    // Buying, paying and commenting need a confirmed e-mail address
+    Route::middleware('verified')->group(function () use ($types) {
+        Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+
+        Route::post('/orders/{order}/pay', [PaymentController::class, 'pay'])
+            ->whereNumber('order')
+            ->middleware('throttle:payments')
+            ->name('orders.pay');
+
+        Route::post('/{type}/{slug}/comments', [CommentController::class, 'store'])
+            ->where('type', $types)
+            ->middleware('throttle:comments')
+            ->name('comments.store');
+    });
 
     // Administrators only
     Route::middleware('can:manage-content')->group(function () {
