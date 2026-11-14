@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\AlreadyAuthenticatedException;
+use App\Http\Middleware\PublicCache;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sanctum SPA authentication (cookie + session) for the Angular front end.
         $middleware->statefulApi();
         $middleware->api(append: [SecurityHeaders::class]);
+        $middleware->alias(['cache.public' => PublicCache::class]);
 
         $middleware->redirectUsersTo(function (Request $request) {
             if ($request->expectsJson()) {

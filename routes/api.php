@@ -30,15 +30,17 @@ use Illuminate\Support\Facades\Route;
 
 $types = 'works|posts|products';
 
-// Public content
-Route::get('/main-page', MainPageController::class)->name('main-page');
+// Public content (the same for everyone, so browsers and CDNs may keep it briefly)
+Route::middleware('cache.public')->group(function () {
+    Route::get('/main-page', MainPageController::class)->name('main-page');
 
-Route::get('/works', [WorkController::class, 'index'])->name('works.index');
-Route::get('/works/{work:slug}', [WorkController::class, 'show'])->name('works.show');
-Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
-Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
-Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/works', [WorkController::class, 'index'])->name('works.index');
+    Route::get('/works/{work:slug}', [WorkController::class, 'show'])->name('works.show');
+    Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+    Route::get('/posts/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+});
 
 Route::get('/{type}/{slug}/comments', [CommentController::class, 'index'])
     ->where('type', $types)

@@ -85,3 +85,12 @@ it('replaces and removes work images when updating and deleting', function () {
     $this->actingAs($admin)->deleteJson('/api/v1/works/'.$work->id)->assertOk();
     Storage::disk('public')->assertMissing($current);
 });
+
+it('lets browsers cache public content briefly but never private data', function () {
+    $cache = $this->getJson('/api/v1/main-page')->assertOk()->headers->get('Cache-Control');
+    expect($cache)->toContain('public')->toContain('max-age=30')->toContain('stale-while-revalidate=120');
+
+    $this->getJson('/api/v1/works/missing-slug')->assertNotFound();
+
+    expect($this->actingAs(customer())->getJson('/api/v1/me')->headers->get('Cache-Control'))->not->toContain('public');
+});
