@@ -2,58 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Middleware\IsAdmin;
+use App\Http\Requests\StoreContactRequest;
 use App\Http\Resources\ContactResource;
 use App\Models\Contact;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Http\JsonResponse;
 
-class ContactController extends Controller implements HasMiddleware
+class ContactController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    /** Admin only (enforced by the route group). */
     public function index()
     {
-        return ContactResource::collection(Contact::orderByDesc('id')->paginate(10));
+        return ContactResource::collection(Contact::latest('id')->paginate(10));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreContactRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'phone_number' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:10',
-            'email' => 'required|email',
-            'title' => 'required|string|max:255',
-            'text' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        Contact::create($request->all());
+        Contact::create($request->validated());
 
         return response()->json(['message' => __('messages.newContact')], 201);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Contact $contact)
+    public function destroy(Contact $contact): JsonResponse
     {
         $contact->delete();
-        return response()->json(['message' => __('messages.deletedContact')], 201);
-    }
 
-    public static function middleware(): array
-    {
-        return [
-            new Middleware(IsAdmin::class, except: ['store']),
-        ];
+        return response()->json(['message' => __('messages.deletedContact')]);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,14 +11,17 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
+    /**
+     * `role` is deliberately not mass assignable: it can only be set explicitly (seeders, admin tooling),
+     * never from request input.
+     */
     protected $fillable = [
         'first_name',
         'last_name',
         'email',
         'phone_number',
-        'role',
         'password',
     ];
 
@@ -32,7 +35,13 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
     }
 
     public function comments(): HasMany

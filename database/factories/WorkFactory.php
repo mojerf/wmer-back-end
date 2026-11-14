@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Models\Work;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Work>
+ * @extends Factory<Work>
  */
 class WorkFactory extends Factory
 {
@@ -27,7 +28,7 @@ class WorkFactory extends Factory
             'timeline' => 'شهریور 1403 - مهر 1403',
             'publish_date' => 'مهر 1403',
             'role' => 'Front-End , Back-End Developer',
-            'tags' => "Angular,Laravel,TS",
+            'tags' => 'Angular,Laravel,TS',
             'project_link' => fake()->randomElement([null, fake()->url()]),
             'full_image' => fake()->randomElement([null, fake()->imageUrl()]),
             'overview' => fake()->randomElement([null, fake()->paragraph(2)]),

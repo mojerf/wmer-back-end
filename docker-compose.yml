@@ -1,22 +1,31 @@
+# Local development database only. Ports are bound to localhost and credentials come from .env.
 services:
     db:
-        image: mysql:latest
-        restart: always
+        image: mysql:8.4
+        restart: unless-stopped
         environment:
-            MYSQL_ALLOW_EMPTY_PASSWORD: true
-            MYSQL_DATABASE: wmer_back_end
+            MYSQL_DATABASE: ${DB_DATABASE:-wmer_back_end}
+            MYSQL_USER: ${DB_USERNAME:-wmer}
+            MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+            MYSQL_RANDOM_ROOT_PASSWORD: "yes"
         volumes:
             - ./mysql_data:/var/lib/mysql
         ports:
-            - "3306:3306"
+            - "127.0.0.1:3306:3306"
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
     phpmyadmin:
-        image: phpmyadmin/phpmyadmin:latest
-        restart: always
+        image: phpmyadmin:5
+        profiles: ["tools"]
+        restart: unless-stopped
         depends_on:
-            - db
+            db:
+                condition: service_healthy
         environment:
             PMA_HOST: db
-            MYSQL_ROOT_PASSWORD:
         ports:
-            - "8089:80"
+            - "127.0.0.1:8089:80"

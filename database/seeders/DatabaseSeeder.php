@@ -9,9 +9,9 @@ use App\Models\Post;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Work;
-use Database\Factories\OrderProductFactory;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,20 +20,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = User::factory()
-            ->create([
-                'first_name' => 'مجتبی',
-                'last_name' => 'عرفان راد',
-                'email' => 'mojerf@yahoo.com',
-                'phone_number' => '09134456735',
-                'role' => 'admin'
-            ]);
+        // The admin account comes from the environment (ADMIN_EMAIL / ADMIN_PASSWORD), never from the repository.
+        $password = config('app.admin.password') ?? (app()->isLocal() ? 'password' : Str::password(24));
+        $admin = User::factory()->admin()->create([
+            'first_name' => 'مجتبی',
+            'last_name' => 'عرفان‌راد',
+            'email' => config('app.admin.email'),
+            'phone_number' => null,
+            'password' => $password,
+        ]);
+
+        if (! config('app.admin.password') && ! app()->isLocal()) {
+            $this->command?->warn("Generated admin password (shown once): {$password}");
+        }
 
         $products = Product::factory(20)->for($admin)->create();
         $posts = Post::factory(20)->for($admin)->create();
         $works = Work::factory(20)->for($admin)->create();
         $users = User::factory(49)->create();
-        $orders = Order::factory(100)->create();
+        $orders = Order::factory(100)->recycle($users)->create();
         Contact::factory(25)->create();
 
         foreach ($orders as $order) {

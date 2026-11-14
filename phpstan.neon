@@ -1,0 +1,20 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - bootstrap
+        - config
+        - database
+        - routes
+    level: 5
+    ignoreErrors:
+        # JsonResource proxies attribute reads to the wrapped model; static analysis cannot see that.
+        -
+            identifier: property.notFound
+            path: app/Http/Resources/*
+        # `role` is cast to the UserRole enum in User::casts(), which Larastan does not resolve here (covered by tests).
+        -
+            identifier: identical.alwaysFalse
+            path: app/Models/User.php

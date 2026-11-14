@@ -1,4 +1,4 @@
-name: Tests
+name: CI
 
 on:
   push:
@@ -10,14 +10,19 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2, 8.3]
+        php: ["8.4", "8.5"]
 
     name: PHP ${{ matrix.php }}
 
@@ -29,17 +34,20 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, fileinfo, gd
           coverage: none
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Copy environment file
-        run: cp .env.example .env
+      - name: Check code style (Pint)
+        run: vendor/bin/pint --test
 
-      - name: Generate app key
-        run: php artisan key:generate
+      - name: Static analysis (Larastan)
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
 
-      - name: Execute tests
+      - name: Audit dependencies
+        run: composer audit
+
+      - name: Run tests
         run: vendor/bin/pest

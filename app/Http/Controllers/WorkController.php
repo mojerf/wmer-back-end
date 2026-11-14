@@ -2,152 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Middleware\IsAdmin;
+use App\Http\Requests\WorkRequest;
 use App\Http\Resources\work\WorkAllResource;
 use App\Http\Resources\work\WorkSingleResource;
 use App\Models\Work;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Storage;
+use App\Support\ImageStorage;
+use Illuminate\Http\JsonResponse;
 
-class WorkController extends Controller implements HasMiddleware
+class WorkController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return WorkAllResource::collection(Work::orderByDesc('id')->paginate(12));
+        return WorkAllResource::collection(Work::latest('id')->paginate(12));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function show(Work $work): WorkSingleResource
     {
-        $request->validate([
-            'image' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'full_image' => ['sometimes', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'title' => ['required', 'string', 'min:3'],
-            'slug' => ['required', 'string', 'min:3', 'unique:works'],
-            'timeline' => ['required', 'string'],
-            'publish_date' => ['required', 'string'],
-            'role' => ['required', 'string'],
-            'tags' => ['required', 'string'],
-            'project_link' => ['nullable', 'string'],
-            'overview' => ['nullable', 'string'],
-            'learn' => ['nullable', 'string'],
-            'description' => ['required', 'string'],
-        ]);
+        return new WorkSingleResource($work->load('comments.user'));
+    }
 
-        $user_id = Auth::guard('sanctum')->user()->id;
-        $work = Work::create([
-            'user_id' => $user_id,
-            'image' => $request->file('image')->store('works', 'public'),
-            'full_image' => $request->hasFile('full_image') ? $request->file('full_image')->store('works', 'public') : null,
-            'title' => $request->title,
-            'slug' => $request->slug,
-            'timeline' => $request->timeline,
-            'publish_date' => $request->publish_date,
-            'role' => $request->role,
-            'tags' => $request->tags,
-            'project_link' => $request->project_link,
-            'overview' => $request->overview,
-            'learn' => $request->learn,
-            'description' => $request->description,
+    public function store(WorkRequest $request): JsonResponse
+    {
+        $work = $request->user()->works()->create([
+            ...$request->safe()->except(['image', 'full_image']),
+            'image' => ImageStorage::store($request->file('image'), 'works'),
+            'full_image' => $request->hasFile('full_image')
+                ? ImageStorage::store($request->file('full_image'), 'works')
+                : null,
         ]);
 
         return response()->json([
             'message' => __('messages.workCreated'),
-            'work_id' => $work
+            'work_id' => $work->getKey(),
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Work $work)
+    public function update(WorkRequest $request, Work $work): JsonResponse
     {
-        return new WorkSingleResource($work);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Work $work)
-    {
-        return $work;
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Work $work)
-    {
-        $request->validate([
-            'image' => ['sometimes', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'full_image' => ['sometimes', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'title' => ['required', 'string', 'min:3'],
-            'slug' => ['required', 'string', 'min:3', Rule::unique('works')->ignore($work->id),],
-            'timeline' => ['required', 'string'],
-            'publish_date' => ['required', 'string'],
-            'role' => ['required', 'string'],
-            'tags' => ['required', 'string'],
-            'project_link' => ['nullable', 'string'],
-            'overview' => ['nullable', 'string'],
-            'learn' => ['nullable', 'string'],
-            'description' => ['required', 'string'],
-        ]);
-
-        $oldImagePath = $work->image;
-        $oldFullImagePath = $work->full_image;
+        $oldImage = $work->image;
+        $oldFullImage = $work->full_image;
 
         $work->update([
-            'image' => $request->hasFile('image') ? $request->file('image')->store('works', 'public') : $work->image,
-            'full_image' => $request->hasFile('full_image') ? $request->file('full_image')->store('works', 'public') : $work->full_image,
-            'title' => $request->title,
-            'slug' => $request->slug,
-            'timeline' => $request->timeline,
-            'publish_date' => $request->publish_date,
-            'role' => $request->role,
-            'tags' => $request->tags,
-            'project_link' => $request->project_link,
-            'overview' => $request->overview,
-            'learn' => $request->learn,
-            'description' => $request->description,
+            ...$request->safe()->except(['image', 'full_image']),
+            'image' => $request->hasFile('image') ? ImageStorage::store($request->file('image'), 'works') : $oldImage,
+            'full_image' => $request->hasFile('full_image') ? ImageStorage::store($request->file('full_image'), 'works') : $oldFullImage,
         ]);
 
-        if ($request->hasFile('image') && $oldImagePath) {
-            Storage::disk('public')->delete($oldImagePath);
-        }
-        if ($request->hasFile('full_image') && $oldFullImagePath) {
-            Storage::disk('public')->delete($oldFullImagePath);
-        }
+        ImageStorage::delete(
+            $request->hasFile('image') ? $oldImage : null,
+            $request->hasFile('full_image') ? $oldFullImage : null,
+        );
 
-        return response()->json([
-            'message' => __('messages.workUpdated'),
-            'work' => $work
-        ], 200);
+        return response()->json(['message' => __('messages.workUpdated'), 'work_id' => $work->id]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Work $work)
+    public function destroy(Work $work): JsonResponse
     {
-        $imagePath = $work->image;
         $work->delete();
-        Storage::disk('public')->delete($imagePath);
-        return response()->json(['message' => __('messages.workDeleted')], 200);
-    }
+        ImageStorage::delete($work->image, $work->full_image);
 
-    public static function middleware(): array
-    {
-        return [
-            new Middleware(IsAdmin::class, except: ['index', 'show']),
-        ];
+        return response()->json(['message' => __('messages.workDeleted')]);
     }
 }

@@ -1,41 +1,42 @@
 <?php
 
 use App\Exceptions\AlreadyAuthenticatedException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Auth\AuthenticationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        api: __DIR__ . '/../routes/api.php',
-        commands: __DIR__ . '/../routes/console.php',
+        api: __DIR__.'/../routes/api.php',
+        apiPrefix: 'api/v1',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->api(prepend: [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ]);
-
-        $middleware->alias([
-            'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
-        ]);
-
+        // Sanctum SPA authentication (cookie + session) for the Angular front end.
         $middleware->statefulApi();
 
         $middleware->redirectUsersTo(function (Request $request) {
             if ($request->expectsJson()) {
-                throw new AlreadyAuthenticatedException();
+                throw new AlreadyAuthenticatedException;
             }
+
             return '/';
         });
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        // This is a JSON-only API: never answer with HTML or redirects.
+        $exceptions->shouldRenderJsonWhen(fn (Request $request) => true);
+
         $exceptions->render(function (AuthenticationException $e, Request $request) {
-            $response['statusCode'] = 403;
-            $response['message'] = 'Unauthorized';
-            return response()->json(['message' => __('messages.unauthenticated')]);
+            return response()->json(['message' => __('messages.unauthenticated')], 401);
+        });
+
+        // Gate/policy denials (e.g. the "manage-content" gate) arrive here as 403.
+        $exceptions->render(function (AccessDeniedHttpException $e, Request $request) {
+            return response()->json(['message' => __('messages.unauthorized')], 403);
         });
     })->create();

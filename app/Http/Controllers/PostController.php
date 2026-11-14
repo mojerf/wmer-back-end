@@ -2,116 +2,57 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Middleware\IsAdmin;
+use App\Http\Requests\PostRequest;
 use App\Http\Resources\post\PostAllResource;
 use App\Http\Resources\post\PostSingleResource;
 use App\Models\Post;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
+use App\Support\ImageStorage;
+use Illuminate\Http\JsonResponse;
 
-class PostController extends Controller implements HasMiddleware
+class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        return PostAllResource::collection(Post::orderByDesc('id')->paginate(12));
+        return PostAllResource::collection(Post::withCount('comments')->latest('id')->paginate(12));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function show(Post $post): PostSingleResource
     {
-        $request->validate([
-            'image' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'title' => ['required', 'string', 'min:3'],
-            'slug' => ['required', 'string', 'min:3', 'unique:posts'],
-            'description' => ['required', 'string'],
-        ]);
+        return new PostSingleResource($post->load(['user', 'comments.user']));
+    }
 
-        $user_id = Auth::guard('sanctum')->user()->id;
-        $post = Post::create([
-            'user_id' => $user_id,
-            'image' => $request->file('image')->store('posts', 'public'),
-            'title' => $request->title,
-            'slug' => $request->slug,
-            'description' => $request->description,
+    public function store(PostRequest $request): JsonResponse
+    {
+        $post = $request->user()->posts()->create([
+            ...$request->safe()->except('image'),
+            'image' => ImageStorage::store($request->file('image'), 'posts'),
         ]);
 
         return response()->json([
             'message' => __('messages.postCreated'),
-            'post_id' => $post->id
+            'post_id' => $post->getKey(),
         ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Post $post)
+    public function update(PostRequest $request, Post $post): JsonResponse
     {
-        return new PostSingleResource($post);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Post $post)
-    {
-        return $post;
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Post $post)
-    {
-        $request->validate([
-            'image' => ['sometimes', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'title' => ['required', 'string', 'min:3'],
-            'slug' => ['required', 'string', 'min:3', Rule::unique('posts')->ignore($post->id),],
-            'description' => ['required', 'string'],
-        ]);
-
-        $oldImagePath = $post->image;
+        $oldImage = $post->image;
 
         $post->update([
-            'image' => $request->hasFile('image') ? $request->file('image')->store('posts', 'public') : $post->image,
-            'title' => $request->title,
-            'slug' => $request->slug,
-            'description' => $request->description,
+            ...$request->safe()->except('image'),
+            'image' => $request->hasFile('image') ? ImageStorage::store($request->file('image'), 'posts') : $oldImage,
         ]);
 
-        if ($request->hasFile('image') && $oldImagePath) {
-            Storage::disk('public')->delete($oldImagePath);
-        }
+        ImageStorage::delete($request->hasFile('image') ? $oldImage : null);
 
-        return response()->json([
-            'message' => __('messages.postUpdated'),
-            'post' => $post
-        ], 200);
+        return response()->json(['message' => __('messages.postUpdated'), 'post_id' => $post->id]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Post $post)
+    public function destroy(Post $post): JsonResponse
     {
-        $imagePath = $post->image;
         $post->delete();
-        Storage::disk('public')->delete($imagePath);
-        return response()->json(['message' => __('messages.postDeleted')], 201);
-    }
+        ImageStorage::delete($post->image);
 
-    public static function middleware(): array
-    {
-        return [
-            new Middleware(IsAdmin::class, except: ['index', 'show']),
-        ];
+        return response()->json(['message' => __('messages.postDeleted')]);
     }
 }

@@ -8,25 +8,54 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\WorkController;
+use App\Http\Resources\UserResource;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::resource('contacts', ContactController::class)->only(['index', 'store', 'destroy']);
-Route::resource('orders', OrderController::class)->only(['index', 'store', 'update']);
-Route::resource('posts', PostController::class)->except(['create']);
-Route::resource('products', ProductController::class)->except(['create']);
-Route::resource('works', WorkController::class)->except(['create']);
+/*
+|--------------------------------------------------------------------------
+| API v1 (prefix /api/v1, see bootstrap/app.php)
+|--------------------------------------------------------------------------
+| Public: reading content, sending a contact message, logging in/registering.
+| Authenticated: placing orders, current user, logout.
+| Admin ("manage-content" gate): writing content, reading orders and contacts.
+*/
 
-Route::get('/main-page', [MainPageController::class, 'mainContent'])
-    ->name('main page content');
+// Public
+Route::get('/main-page', MainPageController::class)->name('main-page');
 
-Route::post('/login', [AuthenticatedSessionController::class, 'store'])
-    ->middleware('guest')
-    ->name('login');
+Route::apiResource('works', WorkController::class)->only(['index', 'show']);
+Route::apiResource('posts', PostController::class)->only(['index', 'show']);
+Route::apiResource('products', ProductController::class)->only(['index', 'show']);
 
-Route::post('/register', [RegisteredUserController::class, 'store'])
-    ->middleware('guest')
-    ->name('register');
+Route::post('/contacts', [ContactController::class, 'store'])
+    ->middleware('throttle:contact')
+    ->name('contacts.store');
 
-Route::middleware('auth:sanctum')
-    ->post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-    ->name('logout');
+Route::middleware('guest')->group(function () {
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:login')
+        ->name('login');
+
+    Route::post('/register', [RegisteredUserController::class, 'store'])
+        ->middleware('throttle:register')
+        ->name('register');
+});
+
+// Authenticated users
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/me', fn (Request $request) => new UserResource($request->user()))->name('me');
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+
+    // Administrators only
+    Route::middleware('can:manage-content')->group(function () {
+        Route::apiResource('works', WorkController::class)->except(['index', 'show']);
+        Route::apiResource('posts', PostController::class)->except(['index', 'show']);
+        Route::apiResource('products', ProductController::class)->except(['index', 'show']);
+
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('/contacts', [ContactController::class, 'index'])->name('contacts.index');
+        Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+    });
+});

@@ -2,74 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Middleware\IsAdmin;
+use App\Actions\CreateOrder;
+use App\Http\Requests\StoreOrderRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
-use App\Models\Product;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Controllers\HasMiddleware;
-use Illuminate\Routing\Controllers\Middleware;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\JsonResponse;
 
-class OrderController extends Controller implements HasMiddleware
+class OrderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    /** All orders (admin only, enforced by the route group). */
     public function index()
     {
-        return OrderResource::collection(Order::orderByDesc('id')->paginate(10));
+        return OrderResource::collection(
+            Order::with(['user', 'products'])->latest('id')->paginate(10)
+        );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreOrderRequest $request, CreateOrder $createOrder): JsonResponse
     {
-        $request->validate([
-            'product_ids' => 'required|array',
-            'product_ids.*' => 'exists:products,id',
-        ]);
+        $order = $createOrder($request->user(), $request->validated('product_ids'));
 
-        $user_id = Auth::guard('sanctum')->user()->id;
-        $products = Product::findMany($request->product_ids);
-        $total_price = 0;
-
-        foreach ($products as $product) {
-            $price = $product->price_with_discount ?? $product->price;
-            $total_price += $price;
-        }
-
-        $order = Order::create([
-            'user_id' => $user_id,
-            'status' => 'pending',
-            'total_price' => $total_price,
-        ]);
-
-        foreach ($products as $product) {
-            $price = $product->price_with_discount ?? $product->price;
-            $order->products()->attach($product->id, [
-                'op_price' => $price,
-            ]);
-        }
-
-        return response()->json(new OrderResource($order), 201);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Order $order)
-    {
-        //
-    }
-
-    public static function middleware(): array
-    {
-        return [
-            'auth:sanctum',
-            new Middleware(IsAdmin::class, except: ['store']),
-        ];
+        return response()->json([
+            'message' => __('messages.newOrder'),
+            'order' => new OrderResource($order),
+        ], 201);
     }
 }

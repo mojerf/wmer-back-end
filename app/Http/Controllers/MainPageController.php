@@ -11,17 +11,12 @@ use App\Models\Work;
 
 class MainPageController extends Controller
 {
-
-    public function mainContent()
+    public function __invoke(): array
     {
-        $works = Work::orderByDesc('id')->take(4)->get();
-        $posts = Post::orderByDesc('id')->take(4)->get();
-        $products = Product::orderByDesc('id')->take(4)->get();
-
         return [
-            'works' => WorkAllResource::collection($works),
-            'posts' => PostAllResource::collection($posts),
-            'products' => ProductAllResource::collection($products),
+            'works' => WorkAllResource::collection(Work::latest('id')->take(4)->get()),
+            'posts' => PostAllResource::collection(Post::withCount('comments')->latest('id')->take(4)->get()),
+            'products' => ProductAllResource::collection(Product::withCount('comments')->latest('id')->take(4)->get()),
         ];
     }
 }

@@ -20,5 +20,4 @@ return [
     'productUpdated' => 'محصول با موفقیت ویرایش شد.',
     'productDeleted' => 'محصول با موفقیت پاک شد.',
     'cannotDeleteProductWithOrder' => 'این محصول به دلیل داشتن سفارش متصل نمیتواند پاک شود!',
-    'aaaaaaaaaaa' => 'aaaaaaaaaaa',
 ];

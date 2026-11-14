@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'wmer'),
 
     /*
     |--------------------------------------------------------------------------
@@ -121,6 +121,19 @@ return [
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Front end and seeded administrator
+    |--------------------------------------------------------------------------
+    */
+
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:4200'),
+
+    'admin' => [
+        'email' => env('ADMIN_EMAIL', 'admin@example.test'),
+        'password' => env('ADMIN_PASSWORD'),
     ],
 
 ];
