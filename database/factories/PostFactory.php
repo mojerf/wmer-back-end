@@ -22,7 +22,7 @@ class PostFactory extends Factory
 
         return [
             'user_id' => User::factory(),
-            'image' => fake()->imageUrl(),
+            'image' => '',
             'title' => $title,
             'slug' => str_replace(' ', '-', $title),
             'description' => fake()->paragraph(4),

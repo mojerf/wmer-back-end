@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\work;
 
+use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,7 +15,7 @@ class WorkAllResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'image' => asset('storage/'.$this->image),
+            'image' => ImageStorage::url($this->image),
             'tags' => array_values(array_filter(array_map('trim', explode(',', (string) $this->tags)))),
             'created_at' => $this->created_at->toIso8601String(),
         ];

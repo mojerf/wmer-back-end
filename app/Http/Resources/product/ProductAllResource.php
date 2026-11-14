@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\product;
 
+use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,7 +15,7 @@ class ProductAllResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'image' => asset('storage/'.$this->image),
+            'image' => ImageStorage::url($this->image),
             // `price` is what the customer pays; `old_price` is only present for discounted products.
             'price' => $this->price_with_discount ?? $this->price,
             'old_price' => $this->price_with_discount ? $this->price : null,

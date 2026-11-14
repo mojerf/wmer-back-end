@@ -22,7 +22,7 @@ class WorkFactory extends Factory
 
         return [
             'user_id' => User::factory(),
-            'image' => fake()->imageUrl(),
+            'image' => '',
             'title' => $title,
             'slug' => str_replace(' ', '-', $title),
             'timeline' => 'شهریور 1403 - مهر 1403',
@@ -30,7 +30,7 @@ class WorkFactory extends Factory
             'role' => 'Front-End , Back-End Developer',
             'tags' => 'Angular,Laravel,TS',
             'project_link' => fake()->randomElement([null, fake()->url()]),
-            'full_image' => fake()->randomElement([null, fake()->imageUrl()]),
+            'full_image' => null,
             'overview' => fake()->randomElement([null, fake()->paragraph(2)]),
             'learn' => fake()->randomElement([null, fake()->paragraph(2)]),
             'description' => fake()->paragraph(4),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\work;
 
+use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,8 +15,8 @@ class WorkSingleResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'image' => asset('storage/'.$this->image),
-            'full_image' => $this->full_image ? asset('storage/'.$this->full_image) : null,
+            'image' => ImageStorage::url($this->image),
+            'full_image' => ImageStorage::url($this->full_image),
             'timeline' => $this->timeline,
             'publish_date' => $this->publish_date,
             'role' => $this->role,

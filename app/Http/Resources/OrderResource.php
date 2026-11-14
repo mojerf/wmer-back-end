@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -21,7 +22,7 @@ class OrderResource extends JsonResource
                 'id' => $product->id,
                 'title' => $product->title,
                 'slug' => $product->slug,
-                'image' => asset('storage/'.$product->image),
+                'image' => ImageStorage::url($product->image),
                 'price' => $product->pivot->op_price,
                 // Digital goods are only handed out once the order is completed.
                 'download_link' => $canDownload ? $product->download_link : null,

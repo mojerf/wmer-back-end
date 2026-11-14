@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\post;
 
+use App\Support\ImageStorage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,7 +15,7 @@ class PostAllResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
-            'image' => asset('storage/'.$this->image),
+            'image' => ImageStorage::url($this->image),
             'created_at' => $this->created_at->toIso8601String(),
             'comments_count' => $this->comments_count,
         ];

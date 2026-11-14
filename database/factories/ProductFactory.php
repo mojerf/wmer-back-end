@@ -23,7 +23,7 @@ class ProductFactory extends Factory
 
         return [
             'user_id' => User::factory(),
-            'image' => fake()->imageUrl(),
+            'image' => '',
             'title' => $title,
             'slug' => str_replace(' ', '-', $title),
             'price' => $price,
