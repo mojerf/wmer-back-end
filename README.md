@@ -86,4 +86,4 @@ front end's domain in production), `ADMIN_EMAIL` / `ADMIN_PASSWORD` (seeding onl
 
 ## License
 
-Not decided yet — add a `LICENSE` file before treating the repository as open source.
+[MIT](LICENSE)
