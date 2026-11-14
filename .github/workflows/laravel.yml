@@ -35,7 +35,8 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, fileinfo, gd
-          coverage: none
+          # pcov is only needed on the one job that reports coverage
+          coverage: ${{ matrix.php == '8.5' && 'pcov' || 'none' }}
 
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
@@ -55,7 +56,21 @@ jobs:
         run: composer audit
 
       - name: Run tests
+        if: matrix.php != '8.5'
         run: vendor/bin/pest
+
+      - name: Run tests with coverage
+        if: matrix.php == '8.5'
+        run: vendor/bin/pest --coverage --coverage-clover=coverage.xml
+
+      - name: Upload coverage to Codecov
+        if: matrix.php == '8.5'
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          flags: back-end
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
       - name: Migrate and seed a throw-away database (smoke test)
         env:

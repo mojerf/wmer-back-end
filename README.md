@@ -1,5 +1,14 @@
 # wmer — back end
 
+[![CI](https://github.com/mojerf/wmer-back-end/actions/workflows/laravel.yml/badge.svg)](https://github.com/mojerf/wmer-back-end/actions/workflows/laravel.yml)
+[![codecov](https://codecov.io/gh/mojerf/wmer-back-end/graph/badge.svg)](https://codecov.io/gh/mojerf/wmer-back-end)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![PHP](https://img.shields.io/badge/PHP-8.4%20%7C%208.5-777bb4?logo=php&logoColor=white)](https://www.php.net)
+[![Laravel](https://img.shields.io/badge/Laravel-13-ff2d20?logo=laravel&logoColor=white)](https://laravel.com)
+[![PHPStan](https://img.shields.io/badge/PHPStan-level%205-4f5b93)](phpstan.neon)
+[![Code style: Pint](https://img.shields.io/badge/code%20style-Pint-orange)](https://laravel.com/docs/pint)
+[![Last commit](https://img.shields.io/github/last-commit/mojerf/wmer-back-end)](https://github.com/mojerf/wmer-back-end/commits/main)
+
 JSON API for the personal website [wmer](https://github.com/mojerf/wmer-front-end), built with
 Laravel 13 (PHP 8.4+) and Laravel Sanctum (cookie-based SPA authentication).
 
